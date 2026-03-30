@@ -1,0 +1,5 @@
+{
+  "name": "AEMB Bénin - Portail Numérique",
+  "description": "Plateforme officielle de l'Association des Élèves et Étudiants Musulmans du Bénin. Savoir, Foi et Fraternité.",
+  "requestFramePermissions": ["geolocation"]
+}
