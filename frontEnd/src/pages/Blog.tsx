@@ -2,79 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Calendar, ChevronRight, ArrowRight, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
-
-interface Article {
-  id: number;
-  title: string;
-  category: string;
-  date: string;
-  image: string;
-  excerpt: string;
-  author: string;
-}
-
-const ALL_ARTICLES: Article[] = [
-  {
-    id: 1,
-    title: "Comment concilier excellence académique et pratique religieuse ?",
-    category: "Réussite",
-    date: "22 Fév 2026",
-    image: "https://picsum.photos/seed/study/800/600",
-    excerpt: "Découvrez nos conseils pratiques pour organiser votre temps entre vos révisions et vos moments de dévotion.",
-    author: "Dr. Moussa G."
-  },
-  {
-    id: 2,
-    title: "L'importance de la fraternité dans le milieu estudiantin",
-    category: "Spiritualité",
-    date: "18 Fév 2026",
-    image: "https://picsum.photos/seed/community/800/600",
-    excerpt: "Pourquoi s'entourer de compagnons vertueux est la clé pour traverser les années d'université avec sérénité.",
-    author: "Oustaz Ibrahim"
-  },
-  {
-    id: 3,
-    title: "Retour sur le Séminaire National de Formation 2025",
-    category: "Actualités",
-    date: "10 Fév 2026",
-    image: "https://picsum.photos/seed/event/800/600",
-    excerpt: "Plus de 500 étudiants réunis à Cotonou pour une semaine d'échanges intenses et de formation.",
-    author: "Bureau National"
-  },
-  {
-    id: 4,
-    title: "Les défis de la jeunesse musulmane au 21ème siècle",
-    category: "Société",
-    date: "05 Fév 2026",
-    image: "https://picsum.photos/seed/youth/800/600",
-    excerpt: "Analyse des enjeux contemporains et des opportunités pour les jeunes croyants dans un monde globalisé.",
-    author: "Mariam A."
-  },
-  {
-    id: 5,
-    title: "Guide : Préparer son Ramadan sur le campus",
-    category: "Spiritualité",
-    date: "01 Fév 2026",
-    image: "https://picsum.photos/seed/ramadan/800/600",
-    excerpt: "Astuces pour la gestion des repas, du sommeil et des examens pendant le mois béni.",
-    author: "Comité Social"
-  },
-  {
-    id: 6,
-    title: "L'ACEEMUB lance son nouveau portail numérique",
-    category: "Actualités",
-    date: "25 Jan 2026",
-    image: "https://picsum.photos/seed/tech/800/600",
-    excerpt: "Une étape majeure pour la digitalisation de nos services et la communication avec nos membres.",
-    author: "Équipe Com"
-  }
-];
+import { useArticles } from '../hooks/useArticles';
 
 const CATEGORIES = ["Tous", "Spiritualité", "Réussite", "Actualités", "Société", "Formation"];
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("Tous");
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: ALL_ARTICLES = [] } = useArticles();
 
   const filteredArticles = ALL_ARTICLES.filter(art => {
     const matchesCategory = activeCategory === "Tous" || art.category === activeCategory;

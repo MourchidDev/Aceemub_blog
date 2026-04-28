@@ -2,36 +2,13 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, ArrowLeft, Share2, Facebook, Twitter, Mail, MessageCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const ALL_ARTICLES = [
-  {
-    id: 1,
-    title: "Comment concilier excellence académique et pratique religieuse ?",
-    category: "Réussite",
-    date: "22 Fév 2026",
-    image: "https://picsum.photos/seed/study/1200/600",
-    author: "Dr. Moussa G.",
-    content: `
-      <p>La vie d'étudiant est souvent marquée par un rythme intense, entre les cours magistraux, les travaux dirigés et les périodes d'examens. Pour l'étudiant musulman, s'ajoute à cela la volonté de maintenir une pratique religieuse assidue et sincère. Contrairement aux idées reçues, ces deux quêtes ne sont pas contradictoires ; elles se nourrissent l'une l'autre.</p>
-      
-      <h3>1. L'intention (Niyyah) : Le moteur de la réussite</h3>
-      <p>Tout commence par l'intention. En Islam, la quête du savoir est une obligation pour chaque musulman. En étudiant avec l'intention de servir la communauté et de plaire à Allah, chaque heure passée à la bibliothèque devient un acte d'adoration.</p>
-      
-      <h3>2. La gestion du temps : Le secret des meilleurs</h3>
-      <p>Le découpage de la journée par les cinq prières quotidiennes est un cadre magnifique pour organiser son travail. Utilisez les moments entre le Fajr et le début des cours pour vos révisions les plus denses. C'est le moment où l'esprit est le plus vif.</p>
-      
-      <blockquote>"Le savoir est une lumière qu'Allah projette dans le cœur."</blockquote>
-      
-      <h3>3. L'équilibre spirituel</h3>
-      <p>Ne négligez pas votre cœur. Un esprit stressé par les examens trouve son apaisement dans le Dhikr et la lecture du Coran. Prenez 15 minutes chaque jour pour vous déconnecter du monde académique et vous reconnecter à l'Essentiel.</p>
-    `
-  },
-  // ... other articles would go here
-];
+import { useArticle } from '../hooks/useArticles';
 
 export default function ArticleDetail() {
   const { id } = useParams();
-  const article = ALL_ARTICLES.find(a => a.id === Number(id)) || ALL_ARTICLES[0];
+  const { data: article } = useArticle(Number(id));
+
+  if (!article) return <div className="pt-40 text-center text-slate-400">Article introuvable.</div>;
 
   return (
     <div className="pt-24 pb-20">

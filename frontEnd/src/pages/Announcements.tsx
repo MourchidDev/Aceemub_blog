@@ -1,43 +1,16 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Megaphone, Calendar, MapPin, ArrowRight, Bell } from 'lucide-react';
-
-const ANNOUNCEMENTS = [
-  {
-    id: 1,
-    title: "Ouverture des inscriptions pour le SNF 2026",
-    date: "23 Fév 2026",
-    category: "Événement National",
-    desc: "Le Séminaire National de Formation (SNF) se tiendra cette année à Cotonou. Les inscriptions sont désormais ouvertes en ligne.",
-    priority: "High"
-  },
-  {
-    id: 2,
-    title: "Bourses d'excellence ACEEMUB : Appel à candidatures",
-    date: "20 Fév 2026",
-    category: "Soutien Académique",
-    desc: "L'ACEEMUB lance son programme annuel de bourses pour soutenir les étudiants méritants en difficulté financière.",
-    priority: "Medium"
-  },
-  {
-    id: 3,
-    title: "Communiqué : Report de la conférence de Porto-Novo",
-    date: "15 Fév 2026",
-    category: "Information",
-    desc: "Pour des raisons logistiques, la conférence prévue le 20 février est reportée au 5 mars 2026.",
-    priority: "Low"
-  }
-];
+import { Megaphone, Calendar, ArrowRight, Bell } from 'lucide-react';
+import { useAnnouncements } from '../hooks/useAnnouncements';
 
 export default function Announcements() {
+  const { data: announcements = [] } = useAnnouncements();
+
   return (
     <div className="pt-24 pb-20">
       <section className="bg-emerald-900 py-24 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">Annonces & Communiqués</h1>
             <p className="text-emerald-100 text-lg max-w-3xl mx-auto leading-relaxed">
               Restez informé des dernières décisions, opportunités et informations officielles de l'ACEEMUB.
@@ -49,24 +22,24 @@ export default function Announcements() {
       <section className="py-24 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="space-y-8">
-            {ANNOUNCEMENTS.map((ann, i) => (
-              <motion.div 
+            {announcements.map((ann, i) => (
+              <motion.div
                 key={ann.id}
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 className={`p-8 rounded-[32px] border-l-8 shadow-sm hover:shadow-md transition-all ${
-                  ann.priority === 'High' ? 'bg-rose-50 border-rose-500' : 
-                  ann.priority === 'Medium' ? 'bg-amber-50 border-amber-500' : 
+                  ann.priority === 'High' ? 'bg-rose-50 border-rose-500' :
+                  ann.priority === 'Medium' ? 'bg-amber-50 border-amber-500' :
                   'bg-slate-50 border-slate-300'
                 }`}
               >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <div className="flex items-center gap-3">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      ann.priority === 'High' ? 'bg-rose-500 text-white' : 
-                      ann.priority === 'Medium' ? 'bg-amber-500 text-white' : 
+                      ann.priority === 'High' ? 'bg-rose-500 text-white' :
+                      ann.priority === 'Medium' ? 'bg-amber-500 text-white' :
                       'bg-slate-500 text-white'
                     }`}>
                       {ann.category}
@@ -81,10 +54,8 @@ export default function Announcements() {
                     </div>
                   )}
                 </div>
-                
                 <h3 className="text-2xl font-bold text-slate-900 mb-4">{ann.title}</h3>
                 <p className="text-slate-600 leading-relaxed mb-6">{ann.desc}</p>
-                
                 <button className="text-aemb-green font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all">
                   Lire le communiqué complet <ArrowRight size={16} />
                 </button>

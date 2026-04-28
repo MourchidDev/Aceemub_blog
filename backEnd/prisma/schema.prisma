@@ -11,3 +11,202 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ENUMS
+
+enum Role {
+  ADMIN
+  EDITOR
+  MEMBER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  PDF
+}
+
+// USER
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          Role     @default(MEMBER)
+  isActive      Boolean  @default(true)
+
+  articles      Article[]
+  comments      Comment[]
+  memberships   MembershipCard?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  @@index([role])
+}
+
+// ARTICLE
+
+model Article {
+  id            String        @id @default(uuid())
+  title         String
+  slug          String        @unique
+  content       String
+  coverImage    String?
+  status        ContentStatus @default(DRAFT)
+
+  authorId      String
+  author        User          @relation(fields: [authorId], references: [id])
+
+  categoryId    String?
+  category      Category?     @relation(fields: [categoryId], references: [id])
+
+  comments      Comment[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// CATEGORY
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+
+  articles  Article[]
+
+  createdAt DateTime @default(now())
+}
+
+// EVENT
+
+model Event {
+  id          String        @id @default(uuid())
+  title       String
+  slug        String        @unique
+  description String
+  location    String
+  eventDate   DateTime
+  status      ContentStatus @default(DRAFT)
+
+  albums      Album[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventDate])
+}
+
+// ALBUM
+
+model Album {
+  id        String  @id @default(uuid())
+  title     String
+  eventId   String
+  event     Event   @relation(fields: [eventId], references: [id])
+
+  media     Media[]
+
+  createdAt DateTime @default(now())
+}
+
+// MEDIA
+
+model Media {
+  id        String  @id @default(uuid())
+  url       String
+  type      MediaType @default(IMAGE)
+  albumId   String
+  album     Album   @relation(fields: [albumId], references: [id])
+
+  createdAt DateTime @default(now())
+  @@index([albumId])
+}
+
+// ANNOUNCEMENT
+
+model Announcement {
+  id         String        @id @default(uuid())
+  title      String
+  content    String
+  image      String?
+  status     ContentStatus @default(DRAFT)
+  expiresAt  DateTime?
+
+  createdAt  DateTime @default(now())
+
+  @@index([status])
+}
+
+// COMMENT (Hierarchique + modération)
+
+model Comment {
+  id            String         @id @default(uuid())
+  content       String
+
+  articleId     String
+  article       Article        @relation(fields: [articleId], references: [id])
+
+  userId        String?
+  user          User?          @relation(fields: [userId], references: [id])
+
+  authorName    String?
+  authorEmail   String?
+
+  parentId      String?
+  parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id])
+  replies       Comment[]      @relation("CommentReplies")
+
+  status        CommentStatus  @default(PENDING)
+
+  ipAddress     String?
+  userAgent     String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([status])
+}
+
+// CONTACT MESSAGE
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+// MEMBERSHIP CARD
+
+model MembershipCard {
+  id            String   @id @default(uuid())
+  memberNumber  String   @unique
+  qrCode        String
+  isActive      Boolean  @default(true)
+
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+}
