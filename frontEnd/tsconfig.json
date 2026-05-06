@@ -3,7 +3,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2023",
+    "jsx": "react-jsx",
     "strict": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     // "ignoreDeprecations": "6.0",
     "types": ["vite/client"]

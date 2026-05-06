@@ -12,6 +12,7 @@ import WhoWeAre from '../pages/WhoWeAre';
 import Vision from '../pages/Vision';
 import Announcements from '../pages/Announcements';
 import FAQ from '../pages/FAQ';
+import AuthPage from '../pages/AuthPage';
 
 export default function AppRouter() {
   return (
@@ -28,6 +29,8 @@ export default function AppRouter() {
         <Route path="/notre-vision" element={<Vision />} />
         <Route path="/annonces" element={<Announcements />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/connexion" element={<AuthPage mode="login" />} />
+        <Route path="/inscription" element={<AuthPage mode="register" />} />
       </Route>
     </Routes>
   );

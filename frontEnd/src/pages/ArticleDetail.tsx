@@ -73,7 +73,7 @@ export default function ArticleDetail() {
 
         {/* Article Content */}
         <div className="prose prose-lg max-w-none prose-slate prose-headings:font-serif prose-headings:font-bold prose-a:text-aemb-green prose-blockquote:border-l-aemb-gold prose-blockquote:bg-amber-50 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-2xl">
-          <div dangerouslySetInnerHTML={{ __html: article.content }} />
+          <div dangerouslySetInnerHTML={{ __html: article.content ?? '' }} />
         </div>
 
         {/* Tags & Footer */}
