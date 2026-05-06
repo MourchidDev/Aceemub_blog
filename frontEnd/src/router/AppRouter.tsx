@@ -12,6 +12,7 @@ import WhoWeAre from '../pages/WhoWeAre';
 import Vision from '../pages/Vision';
 import Announcements from '../pages/Announcements';
 import FAQ from '../pages/FAQ';
+import AdminCategories from '../pages/AdminCategories';
 
 export default function AppRouter() {
   return (
@@ -28,6 +29,7 @@ export default function AppRouter() {
         <Route path="/notre-vision" element={<Vision />} />
         <Route path="/annonces" element={<Announcements />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/admin/categories" element={<AdminCategories />} />
       </Route>
     </Routes>
   );

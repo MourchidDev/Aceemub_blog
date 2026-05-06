@@ -1,9 +1,16 @@
-import express from "express";
-import helmet from "helmet";
-import cors from "cors";
-import { rateLimit } from "express-rate-limit";
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+const { rateLimit } = require("express-rate-limit");
+const categoriesRouter = require("./routes/categories.js");
+
 const app = express();
 
-app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+app.use(express.json());
+app.use(helmet());
+app.use(cors());
 
-export default app;
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+app.use("/api/categories", categoriesRouter);
+
+module.exports = app;
