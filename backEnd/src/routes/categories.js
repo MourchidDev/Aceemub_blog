@@ -6,15 +6,12 @@ const router = express.Router();
 // GET all categories
 router.get('/', async (_req, res) => {
   try {
-    console.log('GET /categories');
     const categories = await prisma.category.findMany({
       include: { _count: { select: { articles: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    console.log('Found categories:', categories.length);
     res.json(categories);
   } catch (error) {
-    console.error('GET categories error:', error);
     res.status(500).json({ error: 'Failed to fetch categories', details: error.message });
   }
 });
@@ -36,21 +33,16 @@ router.get('/:id', async (req, res) => {
 // POST create category
 router.post('/', async (req, res) => {
   try {
-    console.log('POST /categories', req.body);
     const { name, slug } = req.body;
     if (!name || !slug) {
-      console.log('Missing name or slug');
       return res.status(400).json({ error: 'Name and slug required' });
     }
 
-    console.log('Creating category:', { name, slug });
     const category = await prisma.category.create({
       data: { name, slug },
     });
-    console.log('Category created:', category);
     res.status(201).json(category);
   } catch (error) {
-    console.error('Create category error:', error.message, error.code);
     if (error.code === 'P2002') {
       return res.status(409).json({ error: 'Slug already exists' });
     }

@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../hooks/useCategories';
 import { Category } from '../types';
 import { Plus, Pencil, Trash2, Tag, Hash, FileText, X } from 'lucide-react';
+import Loader from '../components/Loader';
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
@@ -194,6 +195,7 @@ export default function AdminCategories() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
+      <Loader isLoading={isLoading} />
       <Toaster position="top-right" toastOptions={{ className: '!rounded-xl !text-sm' }} />
 
       {/* Header */}
@@ -215,12 +217,7 @@ export default function AdminCategories() {
         </div>
 
         {/* Table */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-24 text-gray-400">
-            <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mr-3" />
-            Chargement...
-          </div>
-        ) : !categories?.length ? (
+        {isLoading ? null : !categories?.length ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">
             <Tag size={40} className="mb-3 opacity-30" />
             <p className="text-sm">Aucune catégorie pour l'instant</p>
