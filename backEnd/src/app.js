@@ -4,6 +4,7 @@ const cors = require("cors");
 const { rateLimit } = require("express-rate-limit");
 const categoriesRouter = require("./routes/categories.js");
 
+import prisma from "./config/prisma.js"
 const app = express();
 
 app.use(express.json());
