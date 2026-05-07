@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
+import prisma from "./config/prisma.js"
 import authRoutes from "./routes/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
@@ -49,6 +50,14 @@ app.use(
   authRoutes
 );
 
+
+
+async function test() {
+    await prisma.$connect();
+    console.log("✅ Connexion à la base de données réussie");
+}
+
+test();
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use(notFoundHandler);
