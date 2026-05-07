@@ -8,7 +8,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
-const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:3000")
+const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:5173,http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
