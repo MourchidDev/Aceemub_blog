@@ -1,9 +1,10 @@
 {
   "scripts": {
-    "dev": "prisma generate && nodemon src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "node --experimental-test-name-pattern='.*' --test 'src/**/*.test.js'"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",

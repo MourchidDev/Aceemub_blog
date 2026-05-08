@@ -1,7 +1,7 @@
 .loader-overlay {
   position: fixed;
   inset: 0;
-  background: #0f172a; /* Bleu nuit très profond (très pro) */
+  background: #0f172a;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,12 +13,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
+/* SVG disparaît vers 70% du cycle */
 .premium-svg {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 0 10px rgba(247, 161, 111, 0.2));
+  animation: svgFadeOut 2.5s ease-in-out infinite;
+}
+
+/* Logo positionné au même endroit, apparaît quand le SVG disparaît */
+.loader-logo {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  animation: logoFadeIn 2.5s ease-in-out infinite;
 }
 
 /* Animation de la Lune */
@@ -64,21 +77,37 @@
 }
 
 /* KEYFRAMES */
+
+/* SVG visible puis disparaît */
+@keyframes svgFadeOut {
+  0%, 70% { opacity: 1; transform: scale(1); }
+  85% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 0; }
+}
+
+/* Logo invisible puis apparaît */
+@keyframes logoFadeIn {
+  0%, 70% { opacity: 0; transform: scale(0.9); }
+  85%, 100% { opacity: 1; transform: scale(1); }
+}
+
 @keyframes drawMoon {
   0% { stroke-dashoffset: 800; opacity: 0; }
   30% { opacity: 1; }
-  90%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  70% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
 @keyframes drawFeather {
   0% { stroke-dashoffset: 500; }
+  70% { stroke-dashoffset: 0; }
   100% { stroke-dashoffset: 0; }
 }
 
 @keyframes textReveal {
   0%, 40% { fill: transparent; opacity: 0; transform: translateY(10px); }
-  70%, 90% { fill: white; opacity: 1; transform: translateY(0); }
-  100% { fill: transparent; opacity: 0; }
+  60%, 70% { fill: white; opacity: 1; transform: translateY(0); }
+  100% { fill: white; opacity: 1; }
 }
 
 @keyframes loadingSlide {

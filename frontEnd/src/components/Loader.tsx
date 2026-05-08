@@ -1,4 +1,5 @@
 import React from 'react';
+import sharedImage from '../assets/shared-image.jfif';
 import './Loader.css';
 
 const Loader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
@@ -7,6 +8,7 @@ const Loader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
   return (
     <div className="loader-overlay">
       <div className="loader-wrapper">
+        {/* SVG Animation - disparaît avant la fin */}
         <svg 
           viewBox="0 0 400 400" 
           className="premium-svg"
@@ -41,6 +43,9 @@ const Loader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
             ACEEMUB
           </text>
         </svg>
+
+        {/* Logo - apparaît quand le SVG disparaît */}
+        <img src={sharedImage} alt="Logo ACEEMUB" className="loader-logo" />
         
         {/* Barre de progression discrète en bas */}
         <div className="minimal-progress">
