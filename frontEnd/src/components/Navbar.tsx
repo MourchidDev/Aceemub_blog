@@ -10,6 +10,7 @@ export default function Navbar() {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const { user, isAuthenticated, logout } = useAuth();
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -20,6 +21,22 @@ export default function Navbar() {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [user?.avatarUrl]);
+
+  const userAvatar = user?.avatarUrl && !avatarFailed ? (
+    <img
+      src={user.avatarUrl}
+      alt=""
+      className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+      referrerPolicy="no-referrer"
+      onError={() => setAvatarFailed(true)}
+    />
+  ) : (
+    <UserCircle size={24} className="flex-shrink-0" />
+  );
 
   return (
     <>
@@ -38,11 +55,7 @@ export default function Navbar() {
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-2 text-sm font-medium text-aemb-green">
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="" className="h-7 w-7 rounded-full" />
-                  ) : (
-                    <UserCircle size={24} />
-                  )}
+                  {userAvatar}
                   <span className="max-w-32 truncate">{user?.name}</span>
                 </span>
                 <button
@@ -87,9 +100,15 @@ export default function Navbar() {
               <Link to="/blog">Blog</Link>
               <Link to="/evenements">Evenements</Link>
               {isAuthenticated ? (
-                <button onClick={logout} className="text-left font-serif font-bold">
-                  Se deconnecter
-                </button>
+                <>
+                  <span className="flex items-center gap-3 text-left font-serif font-bold">
+                    {userAvatar}
+                    <span className="min-w-0 truncate">{user?.name}</span>
+                  </span>
+                  <button onClick={logout} className="text-left font-serif font-bold">
+                    Se deconnecter
+                  </button>
+                </>
               ) : (
                 <Link to="/connexion">Connexion</Link>
               )}
