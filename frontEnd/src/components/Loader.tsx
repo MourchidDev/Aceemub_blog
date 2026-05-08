@@ -1,5 +1,5 @@
 import React from 'react';
-import sharedImage from '../assets/shared-image.jfif';
+import sharedImage from '../assets/ac.png';
 import './Loader.css';
 
 const Loader: React.FC<{ isLoading: boolean }> = ({ isLoading }) => {
