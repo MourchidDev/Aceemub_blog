@@ -50,8 +50,12 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-sm font-medium hover:text-aemb-gold transition-colors">Accueil</Link>
             <Link to="/association" className="text-sm font-medium hover:text-aemb-gold transition-colors">L'Association</Link>
-            <Link to="/blog" className="text-sm font-medium hover:text-aemb-gold transition-colors">Blog</Link>
-            <Link to="/evenements" className="text-sm font-medium hover:text-aemb-gold transition-colors">Evenements</Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/blog" className="text-sm font-medium hover:text-aemb-gold transition-colors">Blog</Link>
+                <Link to="/evenements" className="text-sm font-medium hover:text-aemb-gold transition-colors">Evenements</Link>
+              </>
+            )}
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-2 text-sm font-medium text-aemb-green">
@@ -70,9 +74,11 @@ export default function Navbar() {
             ) : (
               <Link to="/connexion" className="text-sm font-medium hover:text-aemb-gold transition-colors">Connexion</Link>
             )}
-            <Link to="/rejoindre" className="bg-aemb-green text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-900/10">
-              Nous Rejoindre
-            </Link>
+            {isAuthenticated && (
+              <Link to="/rejoindre" className="bg-aemb-green text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-900/10">
+                Nous Rejoindre
+              </Link>
+            )}
           </div>
 
           <button className="md:hidden text-aemb-green" onClick={() => setIsMenuOpen(true)}>
@@ -97,10 +103,10 @@ export default function Navbar() {
             <div className="flex flex-col gap-8 mt-12 text-2xl font-serif font-bold text-aemb-green">
               <Link to="/">Accueil</Link>
               <Link to="/association">L'Association</Link>
-              <Link to="/blog">Blog</Link>
-              <Link to="/evenements">Evenements</Link>
               {isAuthenticated ? (
                 <>
+                  <Link to="/blog">Blog</Link>
+                  <Link to="/evenements">Evenements</Link>
                   <span className="flex items-center gap-3 text-left font-serif font-bold">
                     {userAvatar}
                     <span className="min-w-0 truncate">{user?.name}</span>
@@ -112,7 +118,9 @@ export default function Navbar() {
               ) : (
                 <Link to="/connexion">Connexion</Link>
               )}
-              <Link to="/rejoindre" className="bg-aemb-green text-white py-4 rounded-2xl text-lg mt-4 text-center">Nous Rejoindre</Link>
+              {isAuthenticated && (
+                <Link to="/rejoindre" className="bg-aemb-green text-white py-4 rounded-2xl text-lg mt-4 text-center">Nous Rejoindre</Link>
+              )}
             </div>
           </motion.div>
         )}
