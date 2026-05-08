@@ -1,5 +1,5 @@
-const express = require('express');
-const prisma = require('../lib/prisma');
+import express from 'express';
+import prisma from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -37,7 +37,6 @@ router.post('/', async (req, res) => {
     if (!name || !slug) {
       return res.status(400).json({ error: 'Name and slug required' });
     }
-
     const category = await prisma.category.create({
       data: { name, slug },
     });
@@ -80,4 +79,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,7 +1,15 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "test": "node --experimental-test-name-pattern='.*' --test 'src/**/*.test.js'"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".js"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
