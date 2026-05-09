@@ -46,3 +46,11 @@ export interface MembershipPayload {
   level: string;
   city: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  _count?: { articles: number };
+  createdAt?: string;
+}

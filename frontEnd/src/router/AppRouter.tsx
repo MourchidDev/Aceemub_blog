@@ -33,6 +33,7 @@ function RequireAuth() {
 
   return <Outlet />;
 }
+import AdminCategories from '../pages/AdminCategories';
 
 export default function AppRouter() {
   return (
@@ -54,6 +55,7 @@ export default function AppRouter() {
           <Route path="/annonces" element={<Announcements />} />
           <Route path="/faq" element={<FAQ />} />
         </Route>
+        <Route path="/admin/categories" element={<AdminCategories />} />
       </Route>
     </Routes>
   );
