@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { OAuth2Client } from "google-auth-library";
 import { z } from "zod";
-import { prisma } from "../lib/prisma.js";
+import prisma  from "../lib/prisma.js";
 import { requiredEnv } from "../utils/env.js";
 import { sanitizeUser } from "../utils/sanitizeUser.js";
 import { signAccessToken } from "../utils/authTokens.js";
