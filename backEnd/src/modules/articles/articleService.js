@@ -1,4 +1,4 @@
-import { cpSync } from "node:fs";
+
 import prisma from "../../config/prisma.js";
 import articleSchema from "../../validators/articleValidator.js";
 
@@ -63,34 +63,24 @@ const getArticlesByCategory = async (categoryId) => {
     return articles;
 }
 
-const getAllArticles = async() => {
-    const articles = await prisma.article.findMany({
-       include: {
-        author: true,
-        category: true
-       } 
-    })
-}
-
-const getArticlesByAuthor = async(authorId) => {
-    const articles = await prisma.article.findMany({
-        where:{
-            authorId,
-            status: "PUBLISHED"
-        },
-        include:{
-            author:true,
-            category:true
-        }
+const getAllArticles = async () => {
+    return await prisma.article.findMany({
+        include: { author: true, category: true }
     });
-    return articles;
-}
+};
+
+const getArticlesByAuthor = async (authorId) => {
+    return await prisma.article.findMany({
+        where: { authorId, status: "PUBLISHED" },
+        include: { author: true, category: true }
+    });
+};
 
 const updateArticle = async(id, data) => {
     const validationData = articleSchema.parse(data)
     const article = await prisma.article.update({
         where:{id},
-        validationData
+        data: validationData
     })
     return article;
 }
@@ -101,23 +91,18 @@ const deleteArticle = async(id) => {
     })
     return article;
 }
-const publishArticle = async(id) => {
-    const validationData = articleSchema.parse(data)
-    const article = await prisma.article.update({
-        where:{id},
-        validationData:{status:"PUBLISHED"}
-    })
-    return article;
+const publishArticle = async (id) => {
+    return await prisma.article.update({
+        where: { id },
+        data: { status: "PUBLISHED" }
+    });
 }
-const archiveArticle = async(id) => {
-    const validationData = articleSchema.parse(data)
-    
-    const article = await prisma.article.update({
-        where:{id},
-        validationData:{status:"ARCHIVED"}
-    })
-    return article;
-}
+const archiveArticle = async (id) => {
+    return await prisma.article.update({
+        where: { id },
+        data: { status: "ARCHIVED" }
+    });
+};
 
 export {
     createArticle,
