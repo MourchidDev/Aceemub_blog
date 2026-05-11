@@ -54,6 +54,14 @@ export interface MembershipPayload {
   city: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  _count?: { articles: number };
+  createdAt?: string;
+}
+
 export interface ArticlePayload {
   title: string;
   slug: string;

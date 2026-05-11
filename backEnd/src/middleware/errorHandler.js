@@ -1,18 +1,27 @@
 import { ZodError } from "zod";
-import { Prisma } from "@prisma/client";
 
-const errorHandler = (err, req, res, next) => {
-    if (err instanceof ZodError) {
-        return res.status(400).json({ errors: err.flatten().fieldErrors });
-    }
+export function notFoundHandler(req, res) {
+  res.status(404).json({ message: `Route introuvable: ${req.method} ${req.originalUrl}` });
+}
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        if (err.code === 'P2002') return res.status(409).json({ message: "Valeur déjà existante (doublon)." });
-        if (err.code === 'P2025') return res.status(404).json({ message: "Ressource introuvable." });
-    }
+export function errorHandler(error, _req, res, _next) {
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      message: "Donnees invalides.",
+      issues: error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
+  }
 
-    console.error(err);
-    res.status(500).json({ message: "Erreur interne du serveur." });
-};
-
-export default errorHandler;
+  // En production on garde un message generique, mais le log conserve la cause
+  // exacte pour le debuggage serveur.
+  console.error(error);
+  res.status(error.statusCode ?? 500).json({
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Erreur serveur."
+        : error.message ?? "Erreur serveur.",
+  });
+}

@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { LogOut, Menu, UserCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const { user, isAuthenticated, logout } = useAuth();
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -15,7 +18,25 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => { setIsMenuOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [user?.avatarUrl]);
+
+  const userAvatar = user?.avatarUrl && !avatarFailed ? (
+    <img
+      src={user.avatarUrl}
+      alt=""
+      className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+      referrerPolicy="no-referrer"
+      onError={() => setAvatarFailed(true)}
+    />
+  ) : (
+    <UserCircle size={24} className="flex-shrink-0" />
+  );
 
   return (
     <>
@@ -23,17 +44,41 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-aemb-green rounded-full flex items-center justify-center text-white font-bold text-xl">A</div>
-            <span className="font-serif text-xl font-bold text-aemb-green">ACEEMUB Bénin</span>
+            <span className="font-serif text-xl font-bold text-aemb-green">ACEEMUB Benin</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-sm font-medium hover:text-aemb-gold transition-colors">Accueil</Link>
             <Link to="/association" className="text-sm font-medium hover:text-aemb-gold transition-colors">L'Association</Link>
-            <Link to="/blog" className="text-sm font-medium hover:text-aemb-gold transition-colors">Blog</Link>
-            <Link to="/evenements" className="text-sm font-medium hover:text-aemb-gold transition-colors">Événements</Link>
-            <Link to="/rejoindre" className="bg-aemb-green text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-900/10">
-              Nous Rejoindre
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/blog" className="text-sm font-medium hover:text-aemb-gold transition-colors">Blog</Link>
+                <Link to="/evenements" className="text-sm font-medium hover:text-aemb-gold transition-colors">Evenements</Link>
+              </>
+            )}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-2 text-sm font-medium text-aemb-green">
+                  {userAvatar}
+                  <span className="max-w-32 truncate">{user?.name}</span>
+                </span>
+                <button
+                  onClick={logout}
+                  className="text-gray-500 hover:text-aemb-green"
+                  aria-label="Se deconnecter"
+                  title="Se deconnecter"
+                >
+                  <LogOut size={20} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/connexion" className="text-sm font-medium hover:text-aemb-gold transition-colors">Connexion</Link>
+            )}
+            {isAuthenticated && (
+              <Link to="/rejoindre" className="bg-aemb-green text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-900/10">
+                Nous Rejoindre
+              </Link>
+            )}
           </div>
 
           <button className="md:hidden text-aemb-green" onClick={() => setIsMenuOpen(true)}>
@@ -51,14 +96,31 @@ export default function Navbar() {
             className="fixed inset-0 z-[60] bg-white p-8 flex flex-col"
           >
             <div className="flex justify-end">
-              <button onClick={() => setIsMenuOpen(false)} className="text-aemb-green"><X size={32} /></button>
+              <button onClick={() => setIsMenuOpen(false)} className="text-aemb-green">
+                <X size={32} />
+              </button>
             </div>
             <div className="flex flex-col gap-8 mt-12 text-2xl font-serif font-bold text-aemb-green">
               <Link to="/">Accueil</Link>
               <Link to="/association">L'Association</Link>
-              <Link to="/blog">Blog</Link>
-              <Link to="/evenements">Événements</Link>
-              <Link to="/rejoindre" className="bg-aemb-green text-white py-4 rounded-2xl text-lg mt-4 text-center">Nous Rejoindre</Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/blog">Blog</Link>
+                  <Link to="/evenements">Evenements</Link>
+                  <span className="flex items-center gap-3 text-left font-serif font-bold">
+                    {userAvatar}
+                    <span className="min-w-0 truncate">{user?.name}</span>
+                  </span>
+                  <button onClick={logout} className="text-left font-serif font-bold">
+                    Se deconnecter
+                  </button>
+                </>
+              ) : (
+                <Link to="/connexion">Connexion</Link>
+              )}
+              {isAuthenticated && (
+                <Link to="/rejoindre" className="bg-aemb-green text-white py-4 rounded-2xl text-lg mt-4 text-center">Nous Rejoindre</Link>
+              )}
             </div>
           </motion.div>
         )}

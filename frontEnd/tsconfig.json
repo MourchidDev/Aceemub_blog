@@ -3,11 +3,13 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2023",
+    "jsx": "react-jsx",
     "strict": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    // "ignoreDeprecations": "6.0",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client"]
   }
 }

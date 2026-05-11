@@ -1,0 +1,116 @@
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.loader-wrapper {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* SVG disparaît vers 70% du cycle */
+.premium-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(247, 161, 111, 0.2));
+  animation: svgFadeOut 2.5s ease-in-out infinite;
+}
+
+/* Logo positionné au même endroit, apparaît quand le SVG disparaît */
+.loader-logo {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  animation: logoFadeIn 2.5s ease-in-out infinite;
+}
+
+/* Animation de la Lune */
+.logo-moon {
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: drawMoon 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards infinite;
+}
+
+/* Animation de la Plume */
+.logo-feather {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: drawFeather 2.5s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards infinite;
+}
+
+/* Animation du Texte */
+.logo-text {
+  font-family: 'Arial', sans-serif;
+  font-weight: 800;
+  font-size: 45px;
+  fill: transparent;
+  stroke: white;
+  stroke-width: 1px;
+  animation: textReveal 2.5s ease-in-out infinite;
+}
+
+/* Barre de progression minimaliste */
+.minimal-progress {
+  width: 120px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: -20px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #f7a16f, transparent);
+  animation: loadingSlide 1.8s infinite linear;
+}
+
+/* KEYFRAMES */
+
+/* SVG visible puis disparaît */
+@keyframes svgFadeOut {
+  0%, 70% { opacity: 1; transform: scale(1); }
+  85% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 0; }
+}
+
+/* Logo invisible puis apparaît */
+@keyframes logoFadeIn {
+  0%, 70% { opacity: 0; transform: scale(0.9); }
+  85%, 100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes drawMoon {
+  0% { stroke-dashoffset: 800; opacity: 0; }
+  30% { opacity: 1; }
+  70% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes drawFeather {
+  0% { stroke-dashoffset: 500; }
+  70% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes textReveal {
+  0%, 40% { fill: transparent; opacity: 0; transform: translateY(10px); }
+  60%, 70% { fill: white; opacity: 1; transform: translateY(0); }
+  100% { fill: white; opacity: 1; }
+}
+
+@keyframes loadingSlide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
