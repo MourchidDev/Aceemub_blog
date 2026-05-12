@@ -6,7 +6,11 @@ export const useArticles = () =>
   useQuery({ queryKey: ['articles'], queryFn: articlesApi.getAll });
 
 export const useArticle = (id: string) =>
-  useQuery({ queryKey: ['articles', id], queryFn: () => articlesApi.getById(id) });
+  useQuery({
+    queryKey: ['articles', id],
+    queryFn: () => articlesApi.getById(id),
+    enabled: !!id,
+  });
 
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();

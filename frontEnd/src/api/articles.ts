@@ -12,7 +12,7 @@ const toDisplayArticle = (a: Article) => ({
 
 export const articlesApi = {
   getAll: async (): Promise<Article[]> => {
-    const { data } = await apiClient.get<Article[]>('/articles');
+    const { data } = await apiClient.get<Article[]>('/articles/all');
     return data.map(toDisplayArticle);
   },
 

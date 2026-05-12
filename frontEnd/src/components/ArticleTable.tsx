@@ -1,4 +1,5 @@
 import React from 'react';
+import { Edit3, Trash2, Calendar, Eye } from 'lucide-react';
 import { Article } from '../types';
 
 interface Props {
@@ -9,43 +10,86 @@ interface Props {
 
 const ArticleTable = ({ articles, onEdit, onDelete }: Props) => {
   return (
-    <div className="overflow-x-auto shadow-md sm:rounded-lg">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+    <div className="w-full">
+      <table className="w-full text-sm text-left">
+        <thead className="text-[11px] text-slate-400 uppercase tracking-wider bg-slate-50/50 border-b border-slate-100">
           <tr>
-            <th className="px-6 py-3">Couverture</th>
-            <th className="px-6 py-3">Titre</th>
-            <th className="px-6 py-3">Statut</th>
-            <th className="px-6 py-3">Date</th>
-            <th className="px-6 py-3 text-right">Actions</th>
+            <th className="px-6 py-4 font-bold">Article</th>
+            <th className="px-6 py-4 font-bold">Statut</th>
+            <th className="px-6 py-4 font-bold hidden md:table-cell">Date</th>
+            <th className="px-6 py-4 font-bold text-right">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-50">
           {articles.map((article) => (
-            <tr key={article.id} className="bg-white border-b hover:bg-gray-50">
+            <tr key={article.id} className="group hover:bg-slate-50/50 transition-all duration-200">
+              {/* Colonne Article avec Image et Titre */}
               <td className="px-6 py-4">
-                <img
-                  src={article.coverImage ?? '/placeholder.png'}
-                  alt={article.title}
-                  className="w-12 h-12 object-cover rounded"
-                />
+                <div className="flex items-center gap-4">
+                  <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50 shadow-sm">
+                    <img
+                      src={article.coverImage ?? '/placeholder.png'}
+                      alt={article.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-bold text-slate-800 truncate max-w-[200px] md:max-w-xs group-hover:text-emerald-700 transition-colors">
+                      {article.title}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium truncate">
+                      id: {article.id.split('-')[0]}...
+                    </span>
+                  </div>
+                </div>
               </td>
-              <td className="px-6 py-4 font-medium text-gray-900">{article.title}</td>
+
+              {/* Colonne Statut avec Badges modernes */}
               <td className="px-6 py-4">
-                <span className={`px-2 py-1 rounded text-xs ${
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                   article.status === 'PUBLISHED'
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-emerald-100 text-emerald-700'
                     : article.status === 'ARCHIVED'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                    ? 'bg-rose-100 text-rose-700'
+                    : 'bg-amber-100 text-amber-700'
                 }`}>
-                  {article.status}
+                  <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                    article.status === 'PUBLISHED' ? 'bg-emerald-500' : article.status === 'ARCHIVED' ? 'bg-rose-500' : 'bg-amber-500'
+                  }`} />
+                  {article.status === 'PUBLISHED' ? 'Publié' : article.status === 'ARCHIVED' ? 'Archivé' : 'Brouillon'}
                 </span>
               </td>
-              <td className="px-6 py-4">{new Date(article.createdAt).toLocaleDateString('fr-FR')}</td>
-              <td className="px-6 py-4 text-right space-x-2">
-                <button onClick={() => onEdit(article)} className="text-blue-600 hover:underline">Éditer</button>
-                <button onClick={() => onDelete(article.id)} className="text-red-600 hover:underline">Supprimer</button>
+
+              {/* Colonne Date (cachée sur petit mobile) */}
+              <td className="px-6 py-4 hidden md:table-cell text-slate-500 italic">
+                <div className="flex items-center gap-2 text-xs">
+                    <Calendar size={14} className="text-slate-300" />
+                    {new Date(article.createdAt).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    })}
+                </div>
+              </td>
+
+              {/* Colonne Actions : Apparaissent au survol */}
+              <td className="px-6 py-4 text-right">
+                <div className="flex justify-end items-center gap-1  group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                  <button 
+                    onClick={() => onEdit(article)}
+                    className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                    title="Modifier"
+                  >
+                    <Edit3 size={18} />
+                  </button>
+                  <button 
+                    onClick={() => onDelete(article.id)}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

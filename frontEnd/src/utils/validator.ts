@@ -16,10 +16,15 @@ export const validateArticle = (values: ArticlePayload): ValidationResult => {
     errors.content = "Le contenu de l'article ne peut pas être vide.";
   }
 
-  if (values.slug && !/^[a-z0-9-]+$/.test(values.slug)) {
-    errors.slug = "Le slug ne doit contenir que des minuscules, chiffres et tirets.";
+  if (!values.categoryId) {
+    errors.categoryId = "Veuillez sélectionner une catégorie.";
   }
 
+  if (!values.slug || values.slug.trim().length === 0) {
+    errors.slug = "Le slug est requis. Sélectionnez une catégorie.";
+  } else if (!/^[a-z0-9-]+$/.test(values.slug)) {
+    errors.slug = "Le slug ne doit contenir que des minuscules, chiffres et tirets.";
+  }
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
