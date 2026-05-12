@@ -8,7 +8,10 @@ const articleSchema = z.object({
     content: z.string().min(10),
     categoryId: z.string().uuid(),
     slug: z.string().min(3).max(255),
-    coverImage: z.string().url().optional(),
+   coverImage: z.preprocess(
+  val => (val === '' ? undefined : val),
+  z.string().url().optional()
+),
     status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('DRAFT'),
 });
 

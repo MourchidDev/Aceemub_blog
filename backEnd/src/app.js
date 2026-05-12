@@ -3,14 +3,11 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
-import prisma from "./config/prisma.js"
+import prisma from "./config/prisma.js";
 import authRoutes from "./routes/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import categoriesRouter from "./routes/categories.js";
-
-import errorHandler from "./middleware/errorHandler.js";
 import articles from "./routes/articles.js";
-
 
 const app = express();
 
@@ -32,8 +29,6 @@ app.use(
 );
 app.use(express.json({ limit: "100kb" }));
 
-// Limite globale douce contre le brute force et les abus. Les routes auth ont
-// une limite plus stricte juste en dessous.
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -55,46 +50,17 @@ app.use(
   authRoutes
 );
 
-// Limite globale douce contre le brute force et les abus. Les routes auth ont
-// une limite plus stricte juste en dessous.
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 300,
-    standardHeaders: "draft-8",
-    legacyHeaders: false,
-  })
-);
-
-app.use(
-  "/api/auth",
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 20,
-    standardHeaders: "draft-8",
-    legacyHeaders: false,
-    message: { message: "Trop de tentatives. Reessayez dans quelques minutes." },
-  }),
-  authRoutes
-);
-
-app.use(express.json());
-app.use(helmet());
-app.use(cors());
-
-async function test() {
-    await prisma.$connect();
-    console.log("✅ Connexion à la base de données réussie");
+async function connectDb() {
+  await prisma.$connect();
+  console.log("✅ Connexion à la base de données réussie");
 }
-test();
+connectDb();
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/categories", categoriesRouter);
+app.use("/api/articles", articles);   
 
 app.use(notFoundHandler);
-app.use(errorHandler);
-app.use("/api/articles", articles);
-
 app.use(errorHandler);
 
 export default app;
