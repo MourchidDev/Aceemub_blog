@@ -1,14 +1,21 @@
 export interface Article {
-  id: number;
+  id: string;          
   title: string;
-  category: string;
-  date: string;
-  image: string;
-  excerpt: string;
-  author?: string;
-  content?: string;
-  slug?: string;
+  slug: string;
+  content: string;
+  coverImage?: string | null;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  authorId: string;
+  author?: { id: string; name: string; email: string };
+  categoryId?: string | null;
+  category?: { id: string; name: string; slug: string } | null;
+  createdAt: string;
+  updatedAt: string;
+  date?: string;
+  image?: string;
+  excerpt?: string;
 }
+
 
 export interface Event {
   id: number;
@@ -53,4 +60,13 @@ export interface Category {
   slug: string;
   _count?: { articles: number };
   createdAt?: string;
+}
+
+export interface ArticlePayload {
+  title: string;
+  slug: string;
+  content: string;
+  categoryId: string;
+  coverImage?: string;
+  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }

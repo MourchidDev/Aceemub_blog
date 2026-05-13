@@ -3,10 +3,16 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
-import prisma from "./config/prisma.js"
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import prisma from "./config/prisma.js";
 import authRoutes from "./routes/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import categoriesRouter from "./routes/categories.js";
+import articles from "./routes/articles.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -16,7 +22,8 @@ const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:5173,http:
   .filter(Boolean);
 
 app.set("trust proxy", 1);
-app.use(helmet());
+
+// CORS doit être avant helmet
 app.use(
   cors({
     origin(origin, callback) {
@@ -26,10 +33,20 @@ app.use(
     credentials: true,
   })
 );
+
+// Helmet avec configuration pour permettre les images
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// Servir les fichiers uploadés AVANT les autres middlewares
+app.use('/uploads', express.static(join(__dirname, '../uploads')));
+
 app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true }));
 
-// Limite globale douce contre le brute force et les abus. Les routes auth ont
-// une limite plus stricte juste en dessous.
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -51,41 +68,15 @@ app.use(
   authRoutes
 );
 
-// Limite globale douce contre le brute force et les abus. Les routes auth ont
-// une limite plus stricte juste en dessous.
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 300,
-    standardHeaders: "draft-8",
-    legacyHeaders: false,
-  })
-);
-
-app.use(
-  "/api/auth",
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 20,
-    standardHeaders: "draft-8",
-    legacyHeaders: false,
-    message: { message: "Trop de tentatives. Reessayez dans quelques minutes." },
-  }),
-  authRoutes
-);
-
-app.use(express.json());
-app.use(helmet());
-app.use(cors());
-
-async function test() {
-    await prisma.$connect();
-    console.log("✅ Connexion à la base de données réussie");
+async function connectDb() {
+  await prisma.$connect();
+  console.log("✅ Connexion à la base de données réussie");
 }
-test();
+connectDb();
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/categories", categoriesRouter);
+app.use("/api/articles", articles);   
 
 app.use(notFoundHandler);
 app.use(errorHandler);

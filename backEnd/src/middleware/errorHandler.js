@@ -5,7 +5,8 @@ export function notFoundHandler(req, res) {
 }
 
 export function errorHandler(error, _req, res, _next) {
-  if (error instanceof ZodError) {
+ if (error instanceof ZodError) {
+    console.log("Validation errors:", error.issues); 
     return res.status(400).json({
       message: "Donnees invalides.",
       issues: error.issues.map((issue) => ({
