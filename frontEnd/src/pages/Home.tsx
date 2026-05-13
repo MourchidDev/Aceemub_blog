@@ -96,7 +96,7 @@ export default function Home() {
               <Link key={art.id} to={`/blog/${art.id}`} className="group cursor-pointer">
                 <div className="aspect-video rounded-3xl overflow-hidden mb-6 relative">
                   <img src={art.image} alt={art.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
-                  <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold">{art.category}</div>
+                  <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold">{art.category?.name}</div>
                 </div>
                 <p className="text-emerald-300 text-xs font-bold mb-2 uppercase tracking-widest">{art.date}</p>
                 <h3 className="text-xl font-bold mb-3 group-hover:text-aemb-gold transition-colors leading-snug">{art.title}</h3>
