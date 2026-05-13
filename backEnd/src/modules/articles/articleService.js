@@ -1,14 +1,16 @@
 
-import prisma from "../../config/prisma.js";
+// import prisma from "../../config/prisma.js";
 import articleSchema from "../../validators/articleValidator.js";
-
+import prisma from "../../lib/prisma.js";
+import DOMPurify from 'isomorphic-dompurify';
 const createArticle = async (data, user) => {
     const validationData = articleSchema.parse(data)
 
+    const cleanContente = DOMPurify.sanitize(validationData.content);
     const article = await prisma.article.create({
         data:{
             title: validationData.title,
-            content: validationData.content,
+            content: cleanContente,
             slug: validationData.slug,
             author:{
                 connect:{

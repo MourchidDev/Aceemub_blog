@@ -4,15 +4,12 @@ import z from "zod"
 // articleSchema est un validator permettant la facilité de la validation des entrée du crud avec les Articles
 
 const articleSchema = z.object({
-    title: z.string().min(3).max(255).trim(),
-    content: z.string().min(10),
-    categoryId: z.string().uuid(),
-    slug: z.string().min(3).max(255),
-   coverImage: z.preprocess(
-  val => (val === '' ? undefined : val),
-  z.string().url().optional()
-),
-    status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('DRAFT'),
+  title: z.string().min(1, "Le titre est requis"),
+  slug: z.string().min(1, "Le slug est requis"),
+  content: z.string().min(1, "Le contenu est requis"),
+  categoryId: z.string().min(1, "La catégorie est requise"),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("DRAFT"),
+  coverImage: z.string().optional(),
 });
 
 export default articleSchema;

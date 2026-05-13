@@ -1,5 +1,5 @@
 import { tr } from "zod/v4/locales";
-import DOMPurify from 'isomorphic-dompurify';
+
 import {
     createArticle,
     getArticles,
@@ -15,13 +15,29 @@ import {
 from "./articleService.js";
 
 const createArticleController = async (req, res, next) => {
-    const cleanContent = DOMPurify.sanitize(req.body.content);
     try {
         const user = req.user ?? {id: "1d257d43-47ec-4b9e-8f47-62681347fa65"};
-        const article = await createArticle(cleanContent, user);
+        
+        const articleData = {
+            title: req.body.title,
+            slug: req.body.slug,
+            content: req.body.content,
+            categoryId: req.body.categoryId,
+            status: req.body.status || "DRAFT",
+            coverImage: req.file ? `/uploads/${req.file.filename}` : null
+        };
+
+        if (!articleData.title || !articleData.slug || !articleData.content || !articleData.categoryId) {
+            return res.status(400).json({ 
+                message: "Données manquantes", 
+                received: articleData 
+            });
+        }
+        
+        const article = await createArticle(articleData, user);
         res.status(201).json(article);
     } catch (error) {
-        next (error);
+        next(error);
     }
 }
 
@@ -76,7 +92,11 @@ const getArticlesByAuthorController = async(req, res, next) =>{
 const updateArticleController = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const article = await updateArticle(id, req.body);
+        const updateData = {
+            ...req.body,
+            coverImage: req.file ? `/uploads/${req.file.filename}` : req.body.coverImage
+        };
+        const article = await updateArticle(id, updateData);
         res.json(article);
     } catch (error) {
         next(error);

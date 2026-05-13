@@ -3,11 +3,16 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import prisma from "./config/prisma.js";
 import authRoutes from "./routes/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import categoriesRouter from "./routes/categories.js";
 import articles from "./routes/articles.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -17,7 +22,8 @@ const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:5173,http:
   .filter(Boolean);
 
 app.set("trust proxy", 1);
-app.use(helmet());
+
+// CORS doit être avant helmet
 app.use(
   cors({
     origin(origin, callback) {
@@ -27,7 +33,19 @@ app.use(
     credentials: true,
   })
 );
+
+// Helmet avec configuration pour permettre les images
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// Servir les fichiers uploadés AVANT les autres middlewares
+app.use('/uploads', express.static(join(__dirname, '../uploads')));
+
 app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   rateLimit({
