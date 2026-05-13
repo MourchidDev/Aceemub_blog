@@ -68,13 +68,17 @@ export default function MemberCardPage() {
   return (
     <main className="min-h-screen bg-aemb-cream px-6 py-32">
       <section className="mx-auto max-w-3xl overflow-hidden rounded-lg border border-emerald-900/10 bg-white shadow-2xl shadow-emerald-950/10">
-        <div className="grid grid-cols-[72px_1fr_72px] items-center gap-4 bg-aemb-green px-8 py-6 text-white">
-          <img src={beninLogo} alt="Logo du gouvernement beninois" className="h-16 w-16 object-contain" />
+        <div className="grid grid-cols-[100px_1fr_100px] items-center gap-4 bg-aemb-green px-8 py-6 text-white">
+          <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white/95 p-0.5 shadow-sm">
+            <img src={beninLogo} alt="Logo du gouvernement beninois" className="h-full w-full object-contain" />
+          </div>
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
             <h1 className="mt-2 font-serif text-3xl font-bold">Verification carte membre</h1>
           </div>
-          <img src={appLogo} alt="Logo ACEEMUB" className="h-16 w-16 object-contain" />
+          <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white/95 p-2 shadow-sm">
+            <img src={appLogo} alt="Logo ACEEMUB" className="h-full w-full object-contain" />
+          </div>
         </div>
 
         <div className="grid gap-8 p-8 sm:grid-cols-[140px_1fr_auto] sm:items-center">

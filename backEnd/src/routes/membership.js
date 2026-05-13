@@ -214,35 +214,37 @@ router.get("/:id/pdf", async (req, res, next) => {
     doc.pipe(res);
 
     doc.rect(0, 0, 640, 380).fill("#FDFCFB");
-    doc.rect(0, 0, 640, 92).fill("#065F46");
-    drawImageIfExists(doc, getAssetPath("benin-logo.png"), 34, 18, { width: 56, height: 56, fit: [56, 56] });
-    drawImageIfExists(doc, getAssetPath("ac.png"), 550, 18, { width: 56, height: 56, fit: [56, 56] });
-    doc.fillColor("#FFFFFF").fontSize(22).font("Helvetica-Bold").text("ACEEMUB Benin", 120, 24, {
+    doc.rect(0, 0, 640, 108).fill("#065F46");
+    doc.roundedRect(30, 18, 76, 72, 8).fill("#FFFFFF");
+    doc.roundedRect(534, 18, 76, 72, 8).fill("#FFFFFF");
+    drawImageIfExists(doc, getAssetPath("benin-logo.png"), 32, 20, { width: 72, height: 68, fit: [72, 68] });
+    drawImageIfExists(doc, getAssetPath("ac.png"), 542, 24, { width: 60, height: 60, fit: [60, 60] });
+    doc.fillColor("#FFFFFF").fontSize(22).font("Helvetica-Bold").text("ACEEMUB Benin", 120, 28, {
       width: 400,
       align: "center",
     });
-    doc.fontSize(10).font("Helvetica").text("Carte membre officielle", 120, 58, {
+    doc.fontSize(10).font("Helvetica").text("Carte membre officielle", 120, 62, {
       width: 400,
       align: "center",
     });
 
-    doc.roundedRect(28, 116, 584, 218, 10).fillAndStroke("#FFFFFF", "#D9E7DF");
-    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(card.memberNumber, 44, 134);
+    doc.roundedRect(28, 124, 584, 210, 10).fillAndStroke("#FFFFFF", "#D9E7DF");
+    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(card.memberNumber, 44, 142);
 
     if (card.photoDataUrl) {
-      doc.image(dataUrlToBuffer(card.photoDataUrl), 44, 160, { width: 98, height: 112, fit: [98, 112] });
+      doc.image(dataUrlToBuffer(card.photoDataUrl), 44, 166, { width: 98, height: 112, fit: [98, 112] });
     } else {
-      doc.roundedRect(44, 160, 98, 112, 8).fill("#E5E7EB");
-      doc.fillColor("#6B7280").fontSize(10).text("Photo", 78, 210);
+      doc.roundedRect(44, 166, 98, 112, 8).fill("#E5E7EB");
+      doc.fillColor("#6B7280").fontSize(10).text("Photo", 78, 216);
     }
 
-    doc.fillColor("#111827").fontSize(22).font("Helvetica-Bold").text(fullName, 164, 158, { width: 270 });
-    doc.fillColor("#374151").fontSize(12).font("Helvetica").text(card.school, 164, 195, { width: 270 });
-    doc.text(`${card.level} - ${card.city}`, 164, 218, { width: 270 });
-    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(`Membre depuis le ${memberSince}`, 164, 254);
+    doc.fillColor("#111827").fontSize(22).font("Helvetica-Bold").text(fullName, 164, 166, { width: 270 });
+    doc.fillColor("#374151").fontSize(12).font("Helvetica").text(card.school, 164, 203, { width: 270 });
+    doc.text(`${card.level} - ${card.city}`, 164, 226, { width: 270 });
+    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(`Membre depuis le ${memberSince}`, 164, 262);
 
-    doc.image(dataUrlToBuffer(card.qrCode), 484, 154, { width: 92, height: 92 });
-    doc.fillColor("#6B7280").fontSize(8).font("Helvetica").text("Scanner pour verifier", 472, 254, { width: 120, align: "center" });
+    doc.image(dataUrlToBuffer(card.qrCode), 484, 162, { width: 92, height: 92 });
+    doc.fillColor("#6B7280").fontSize(8).font("Helvetica").text("Scanner pour verifier", 472, 262, { width: 120, align: "center" });
 
     doc.fillColor("#065F46").fontSize(9).text("Foi - Savoir - Fraternite", 44, 302);
     doc.end();
