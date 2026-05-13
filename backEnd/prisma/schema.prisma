@@ -35,13 +35,23 @@ enum MediaType {
   PDF
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 // USER
 
 model User {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
-  password      String
+  password      String?
+  authProvider  AuthProvider @default(LOCAL)
+  googleId      String?  @unique
+  avatarUrl     String?
+  emailVerifiedAt DateTime?
+  lastLoginAt   DateTime?
   role          Role     @default(MEMBER)
   isActive      Boolean  @default(true)
 
@@ -54,6 +64,7 @@ model User {
   deletedAt     DateTime?
 
   @@index([role])
+  @@index([authProvider])
 }
 
 // ARTICLE

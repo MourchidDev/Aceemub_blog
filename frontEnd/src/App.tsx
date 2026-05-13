@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AppRouter from './router/AppRouter';
 import { NotificationProvider } from './components/NotificationContainer';
+import { AuthProvider } from './context/AuthContext';
 
 const queryClient = new QueryClient();
 
@@ -11,8 +12,10 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <NotificationProvider>
         <BrowserRouter>
+          <AuthProvider>
           <AppRouter />
-        </BrowserRouter>
+          </AuthProvider>
+      </BrowserRouter>
       </NotificationProvider>
     </QueryClientProvider>
   );
