@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import apiClient from '../api/client';
 import { Article, ArticlePayload } from '../types';
+import { useUpdateArticle } from './useArticles';
+import apiClient from '../api/client';
 
 interface UseArticleSubmitReturn {
   submitArticle: (data: FormData | (ArticlePayload & { id?: string }), isUpdate?: boolean) => Promise<Article>;
@@ -15,33 +16,39 @@ const useArticleSubmit = (): UseArticleSubmitReturn => {
   const submitArticle = async (data: FormData | (ArticlePayload & { id?: string }), isUpdate = false): Promise<Article> => {
     setLoading(true);
     setError(null);
-    console.log('voici la réponse:', data);
 
     try {
-      let payload: any = data;
-      const config: any = {};
+      let payload: any;
+      let config: any = {};
       let url = '/articles';
 
-      // Si c'est FormData, l'utiliser directement
       if (data instanceof FormData) {
-        payload = data;
-        config.headers = { 'Content-Type': 'multipart/form-data' };
+        const hasFile = data.get('coverImage') instanceof File;
         
-        // Extraire l'ID de FormData pour la mise à jour
+        if (hasFile) {
+          payload = data;
+          config.headers = { 'Content-Type': 'multipart/form-data' };
+        } else {
+          payload = {
+            title: data.get('title'),
+            slug: data.get('slug'),
+            content: data.get('content'),
+            status: data.get('status'),
+            categoryId: data.get('categoryId'),
+          };
+        }
+        
         if (isUpdate) {
-          const formDataId = (data as any).get?.('id');
-          if (formDataId) {
-            url = `/articles/${formDataId}`;
-          }
+          const formDataId = data.get('id');
+          if (formDataId) url = `/articles/${formDataId}`;
         }
       } else {
-        // Si c'est un objet JSON standard
+        payload = data;
         url = isUpdate && data.id ? `/articles/${data.id}` : '/articles';
       }
 
       const method = isUpdate ? 'put' : 'post';
       const response = await apiClient[method]<Article>(url, payload, config);
-      console.log('voici la réponse:', response);
       return response.data;
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message || err?.message || 'Une erreur est survenue';

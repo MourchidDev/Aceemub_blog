@@ -19,3 +19,36 @@ export const useCreateArticle = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
   });
 };
+
+export const useUpdateArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ArticlePayload | FormData }) => 
+      articlesApi.update(id, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+};
+
+export const useDeleteArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => articlesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+};
+
+export const usePublishArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => articlesApi.publish(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+};
+
+export const useArchiveArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => articlesApi.archive(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
+  });
+};

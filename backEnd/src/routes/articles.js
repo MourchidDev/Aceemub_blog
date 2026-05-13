@@ -23,8 +23,8 @@ router.get("/category/:categoryId", getArticlesByCategoryController);
 router.get("/author/:authorId", getArticlesByAuthorController);
 router.get("/:id", getArticleByIdController);
 router.put("/:id", upload.single('coverImage'), updateArticleController);
-router.delete("/:id", authorize("ADMIN"), deleteArticleController);
-router.post("/:id/publish", authorize("ADMIN", "EDITOR"), publishArticleController);
+router.delete("/:id", deleteArticleController);
+router.post("/:id/publish",  publishArticleController);
 router.post("/:id/archive", authorize("ADMIN", "EDITOR"), archiveArticleController);
 
 export default router;

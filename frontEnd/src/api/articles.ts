@@ -38,5 +38,24 @@ export const articlesApi = {
     const { data } = await apiClient.post<Article>('/articles', payload);
     return toDisplayArticle(data);
   },
+  update: async (id: string, payload: ArticlePayload | FormData): Promise<Article> => {
+    const config = payload instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+    const { data } = await apiClient.put<Article>(`/articles/${id}`, payload, config);
+    return toDisplayArticle(data);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/articles/${id}`);
+  },
+
+  publish: async (id: string): Promise<Article> => {
+    const { data } = await apiClient.post<Article>(`/articles/${id}/publish`);
+    return toDisplayArticle(data);
+  },
+
+  archive: async (id: string): Promise<Article> => {
+    const { data } = await apiClient.post<Article>(`/articles/${id}/archive`);
+    return toDisplayArticle(data);
+  }
 }
 

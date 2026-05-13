@@ -1,16 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, FileText, LayoutList, Search } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useArticles } from '../hooks/useArticles';
+import { Plus, FileText, LayoutList } from 'lucide-react';
+import { useArticles, useDeleteArticle, usePublishArticle, useArchiveArticle } from '../hooks/useArticles';
 import ArticleTable from '../components/ArticleTable';
-import apiClient from '../api/client';
 import { Article } from '../types';
+import Loader from '../components/Loader';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function AdminArticles() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: articles = [], isLoading } = useArticles();
+  const deleteMutation = useDeleteArticle();
+  const publishMutation = usePublishArticle();
+  const archiveMutation = useArchiveArticle();
 
   const handleEdit = (article: Article) =>
     navigate(`/admin/articles/${article.id}/edit`);
@@ -18,16 +20,40 @@ export default function AdminArticles() {
   const handleDelete = async (id: string) => {
     if (!confirm('Voulez-vous vraiment supprimer cet article ? Cette action est irréversible.')) return;
     try {
-      await apiClient.delete(`/articles/${id}`);
-      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      await deleteMutation.mutateAsync(id);
+      toast.success('Article supprimé avec succès');
     } catch (error) {
+      toast.error('Erreur lors de la suppression');
       console.error("Erreur lors de la suppression", error);
+    }
+  };
+
+  const handlePublish = async (id: string) => {
+    try {
+      await publishMutation.mutateAsync(id);
+      toast.success('Article publié avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de la publication');
+      console.error("Erreur lors de la publication", error);
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    if (!confirm('Voulez-vous archiver cet article ?')) return;
+    try {
+      await archiveMutation.mutateAsync(id);
+      toast.success('Article archivé avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de l\'archivage');
+      console.error("Erreur lors de l'archivage", error);
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header avec Titre et Action */}
+      <Toaster position="top-right" />
+      <Loader isLoading={isLoading} />
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Articles</h1>
@@ -40,7 +66,6 @@ export default function AdminArticles() {
         </button>
       </div>
 
-      {/* Barre de Filtres Rapides / Stats (Le petit plus pro) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><FileText size={20}/></div>
@@ -49,19 +74,18 @@ export default function AdminArticles() {
             <p className="text-xl font-black">{articles.length}</p>
           </div>
         </div>
-        {/* Tu peux ajouter d'autres stats ici (ex: Publiés, Brouillons) */}
       </div>
 
-      {/* Zone de contenu principal */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-20 flex flex-col items-center justify-center space-y-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-aemb-green"></div>
-            <p className="text-slate-400 font-medium italic">Récupération des articles...</p>
-          </div>
-        ) : articles.length > 0 ? (
-          <ArticleTable articles={articles} onEdit={handleEdit} onDelete={handleDelete} />
-        ) : (
+        {!isLoading && articles.length > 0 ? (
+          <ArticleTable 
+            articles={articles} 
+            onEdit={handleEdit} 
+            onDelete={handleDelete}
+            onPublish={handlePublish}
+            onArchive={handleArchive}
+          />
+        ) : !isLoading && articles.length === 0 ? (
           <div className="p-20 text-center">
             <div className="inline-flex p-6 bg-slate-50 rounded-full text-slate-300 mb-4">
                 <LayoutList size={48} />
@@ -75,7 +99,7 @@ export default function AdminArticles() {
                 Créer un article maintenant
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
