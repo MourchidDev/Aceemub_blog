@@ -1,5 +1,7 @@
 import { Router } from "express";
+import fs from "fs";
 import multer from "multer";
+import path from "path";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import { z } from "zod";
@@ -68,6 +70,14 @@ function createMemberNumber() {
 function dataUrlToBuffer(dataUrl) {
   const [, base64 = ""] = dataUrl.split(",");
   return Buffer.from(base64, "base64");
+}
+
+function getAssetPath(fileName) {
+  return path.resolve(process.cwd(), "..", "frontEnd", "src", "assets", fileName);
+}
+
+function drawImageIfExists(doc, filePath, x, y, options) {
+  if (fs.existsSync(filePath)) doc.image(filePath, x, y, options);
 }
 
 async function buildQrCode(cardId, memberNumber) {
@@ -205,8 +215,16 @@ router.get("/:id/pdf", async (req, res, next) => {
 
     doc.rect(0, 0, 640, 380).fill("#FDFCFB");
     doc.rect(0, 0, 640, 92).fill("#065F46");
-    doc.fillColor("#FFFFFF").fontSize(22).font("Helvetica-Bold").text("ACEEMUB Benin", 34, 26);
-    doc.fontSize(10).font("Helvetica").text("Carte membre officielle", 35, 58);
+    drawImageIfExists(doc, getAssetPath("benin-logo.png"), 34, 18, { width: 56, height: 56, fit: [56, 56] });
+    drawImageIfExists(doc, getAssetPath("ac.png"), 550, 18, { width: 56, height: 56, fit: [56, 56] });
+    doc.fillColor("#FFFFFF").fontSize(22).font("Helvetica-Bold").text("ACEEMUB Benin", 120, 24, {
+      width: 400,
+      align: "center",
+    });
+    doc.fontSize(10).font("Helvetica").text("Carte membre officielle", 120, 58, {
+      width: 400,
+      align: "center",
+    });
 
     doc.roundedRect(28, 116, 584, 218, 10).fillAndStroke("#FFFFFF", "#D9E7DF");
     doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(card.memberNumber, 44, 134);

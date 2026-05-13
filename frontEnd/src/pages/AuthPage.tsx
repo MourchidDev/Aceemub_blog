@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AxiosError } from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import authHeroImage from '../assets/auth-hero.jpg';
@@ -36,6 +36,7 @@ function getErrorMessage(error: unknown) {
 
 export default function AuthPage({ mode }: { mode: AuthMode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loginWithEmail, registerWithEmail, signInWithGoogle, isAuthenticated } = useAuth();
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const [name, setName] = useState('');
@@ -48,6 +49,16 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
   const isRegister = mode === 'register';
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const title = useMemo(() => (isRegister ? 'Creer un compte' : 'Connexion'), [isRegister]);
+  const redirectTo =
+    typeof location.state === 'object' &&
+    location.state &&
+    'from' in location.state &&
+    typeof location.state.from === 'object' &&
+    location.state.from &&
+    'pathname' in location.state.from &&
+    typeof location.state.from.pathname === 'string'
+      ? `${location.state.from.pathname}${'search' in location.state.from && typeof location.state.from.search === 'string' ? location.state.from.search : ''}`
+      : '/';
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -59,8 +70,8 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
   }, [googleClientId]);
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/', { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) navigate(redirectTo, { replace: true });
+  }, [isAuthenticated, navigate, redirectTo]);
 
   useEffect(() => {
     if (!googleClientId || !googleButtonRef.current) return;
@@ -82,7 +93,7 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
             setIsSubmitting(true);
             setError(null);
             await signInWithGoogle(response.credential);
-            navigate('/', { replace: true });
+            navigate(redirectTo, { replace: true });
           } catch (caughtError) {
             setError(getErrorMessage(caughtError));
           } finally {
@@ -111,7 +122,7 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
     script.defer = true;
     script.onload = renderGoogleButton;
     document.head.appendChild(script);
-  }, [googleClientId, isRegister, navigate, signInWithGoogle]);
+  }, [googleClientId, isRegister, navigate, redirectTo, signInWithGoogle]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,7 +135,7 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
       } else {
         await loginWithEmail({ email, password });
       }
-      navigate('/', { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (caughtError) {
       setError(getErrorMessage(caughtError));
     } finally {

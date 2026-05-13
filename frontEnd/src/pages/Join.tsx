@@ -16,6 +16,8 @@ import {
 import { membershipApi } from '../api/forms';
 import { useAuth } from '../context/AuthContext';
 import { MembershipCard, MembershipPayload } from '../types';
+import appLogo from '../assets/ac.png';
+import beninLogo from '../assets/benin-logo.png';
 
 const initialForm: MembershipPayload = {
   firstName: '',
@@ -53,9 +55,13 @@ function MemberBadge({ card }: { card: MembershipCard }) {
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-xl shadow-emerald-950/10">
-        <div className="bg-aemb-green px-6 py-5 text-white">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
-          <h3 className="mt-1 font-serif text-2xl font-bold">Carte membre</h3>
+        <div className="grid grid-cols-[64px_1fr_64px] items-center gap-4 bg-aemb-green px-6 py-5 text-white">
+          <img src={beninLogo} alt="Logo du gouvernement beninois" className="h-14 w-14 object-contain" />
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
+            <h3 className="mt-1 font-serif text-2xl font-bold">Carte membre</h3>
+          </div>
+          <img src={appLogo} alt="Logo ACEEMUB" className="h-14 w-14 object-contain" />
         </div>
 
         <div className="grid gap-6 p-6 sm:grid-cols-[120px_1fr_auto] sm:items-center">

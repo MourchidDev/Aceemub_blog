@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import { Camera, Download, QrCode } from 'lucide-react';
 import { membershipApi } from '../api/forms';
+import { useAuth } from '../context/AuthContext';
 import { MembershipCard } from '../types';
+import appLogo from '../assets/ac.png';
+import beninLogo from '../assets/benin-logo.png';
 
 export default function MemberCardPage() {
   const { id } = useParams();
+  const location = useLocation();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [card, setCard] = useState<MembershipCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -13,7 +18,7 @@ export default function MemberCardPage() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || isAuthLoading || !isAuthenticated) return;
 
     membershipApi
       .get(id)
@@ -23,7 +28,7 @@ export default function MemberCardPage() {
       })
       .catch(() => setError('Carte membre introuvable.'))
       .finally(() => setIsLoading(false));
-  }, [id]);
+  }, [id, isAuthenticated, isAuthLoading]);
 
   const memberSince = useMemo(() => {
     if (!card) return '';
@@ -33,6 +38,14 @@ export default function MemberCardPage() {
       year: 'numeric',
     }).format(new Date(card.createdAt));
   }, [card]);
+
+  if (isAuthLoading) {
+    return <main className="min-h-screen bg-aemb-cream pt-32 text-center text-aemb-green">Chargement...</main>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/connexion" replace state={{ from: location }} />;
+  }
 
   if (isLoading) {
     return <main className="min-h-screen bg-aemb-cream pt-32 text-center text-aemb-green">Chargement...</main>;
@@ -55,9 +68,13 @@ export default function MemberCardPage() {
   return (
     <main className="min-h-screen bg-aemb-cream px-6 py-32">
       <section className="mx-auto max-w-3xl overflow-hidden rounded-lg border border-emerald-900/10 bg-white shadow-2xl shadow-emerald-950/10">
-        <div className="bg-aemb-green px-8 py-6 text-white">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
-          <h1 className="mt-2 font-serif text-3xl font-bold">Verification carte membre</h1>
+        <div className="grid grid-cols-[72px_1fr_72px] items-center gap-4 bg-aemb-green px-8 py-6 text-white">
+          <img src={beninLogo} alt="Logo du gouvernement beninois" className="h-16 w-16 object-contain" />
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
+            <h1 className="mt-2 font-serif text-3xl font-bold">Verification carte membre</h1>
+          </div>
+          <img src={appLogo} alt="Logo ACEEMUB" className="h-16 w-16 object-contain" />
         </div>
 
         <div className="grid gap-8 p-8 sm:grid-cols-[140px_1fr_auto] sm:items-center">
