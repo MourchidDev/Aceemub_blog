@@ -3,22 +3,35 @@ import apiClient from './client';
 
 
 
-const toDisplayArticle = (a: Article) => ({
-  ...a,
-  date: new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-  image: a.coverImage ?? `https://picsum.photos/seed/${a.slug}/800/600`,
-  excerpt: a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...',
-});
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+const toDisplayArticle = (a: Article) => {
+  if (!a) return a;
+
+    let imageUrl = a.coverImage;
+  if (imageUrl && imageUrl.startsWith('/uploads/')) {
+    imageUrl = `${API_BASE_URL}${imageUrl}`;
+  } else if (!imageUrl) {
+    imageUrl = `/src/assets/ac.png`;
+  }
+  
+  return {
+    ...a,
+    date: a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+    coverImage: imageUrl,
+    excerpt: a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+  };
+};
 
 export const articlesApi = {
   getAll: async (): Promise<Article[]> => {
     const { data } = await apiClient.get<Article[]>('/articles/all');
-    return data.map(toDisplayArticle);
+    return data.filter(Boolean).map(toDisplayArticle);
   },
 
   getById: async (id: string): Promise<Article | undefined> => {
     const { data } = await apiClient.get<Article>(`/articles/${id}`);
-    return toDisplayArticle(data);
+    return data ? toDisplayArticle(data) : undefined;
   },
 
   create: async (payload: ArticlePayload): Promise<Article> => {
@@ -26,5 +39,4 @@ export const articlesApi = {
     return toDisplayArticle(data);
   },
 }
-
 

@@ -33,15 +33,31 @@ export default function ArticleFormPage() {
   // GESTION DE L'HYDRATATION : On remplit le state quand les données arrivent
   useEffect(() => {
     if (initialData) {
+      // 1. On détermine l'ID de la catégorie de manière sécurisée
+      let targetId = '';
+      
+      if (initialData.category && typeof initialData.category === 'object' && 'id' in initialData.category) {
+        // Si l'objet complet est dans la propriété 'category' (cas classique Prisma include)
+        targetId = initialData.category.id;
+      } else if (initialData.categoryId && typeof initialData.categoryId === 'object' && 'id' in initialData.categoryId) {
+        // Si l'objet est niché dans 'categoryId'
+        targetId = (initialData.categoryId as any).id;
+      } else if (typeof initialData.categoryId === 'string') {
+        // Si c'est déjà un string
+        targetId = initialData.categoryId;
+      }
+      // else targetId reste '' (null case)
+
       setFormData({
         id: initialData.id,
         title: initialData.title,
         slug: initialData.slug,
         content: initialData.content,
         status: initialData.status,
-        categoryId: initialData.categoryId ?? '',
+        categoryId: targetId, 
         coverImage: '',
       });
+      
       if (initialData.coverImage) setPreview(initialData.coverImage);
     }
   }, [initialData]);
@@ -52,12 +68,12 @@ export default function ArticleFormPage() {
       const updated = { ...prev, [name]: value };
       if (name === 'categoryId') {
         const catSlug = categories.find(c => c.id === value)?.slug ?? '';
-        updated.slug = prev.title ? `${catSlug}-${slugify(prev.title)}` : catSlug;
+        updated.slug = catSlug;
       }
-      if (name === 'title') {
-        const catSlug = categories.find(c => c.id === prev.categoryId)?.slug ?? '';
-        updated.slug = catSlug ? `${catSlug}-${slugify(value)}` : slugify(value);
-      }
+      // if (name === 'title') {
+      //   const catSlug = categories.find(c => c.id === prev.categoryId)?.slug ?? '';
+      //   updated.slug = catSlug ? `${catSlug}-${slugify(value)}` : slugify(value);
+      // }
       return updated;
     });
     if (errors[name as keyof ArticlePayload]) {
@@ -73,18 +89,32 @@ export default function ArticleFormPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validation = validateArticle(formData);
-    if (!validation.isValid) { setErrors(validation.errors); return; }
-    try {
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const validation = validateArticle(formData);
+  if (!validation.isValid) { setErrors(validation.errors); return; }
+  
+  try {
+    if (imageFile) {
+      // Avec fichier : envoyer FormData
       const payload = new FormData();
-      Object.entries(formData).forEach(([k, v]) => { if (v) payload.append(k, v); });
-      if (imageFile) payload.append('coverImage', imageFile);
+      payload.append('title', formData.title);
+      payload.append('slug', formData.slug);
+      payload.append('content', formData.content);
+      payload.append('status', formData.status || '');
+      payload.append('categoryId', formData.categoryId || '');
+      payload.append('coverImage', imageFile);
+      if (isEdit && formData.id) payload.append('id', formData.id);
+      
       await submitArticle(payload as any, isEdit);
-      navigate('/admin/articles');
-    } catch { }
-  };
+    } else {
+      // Sans fichier : envoyer JSON
+      await submitArticle(formData, isEdit);
+    }
+    
+    navigate('/admin/articles');
+  } catch { }
+};
 
   const labelClass = "flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5";
   const inputBase = "block w-full transition-all duration-200 border rounded-xl p-3 focus:ring-4 focus:outline-none";
@@ -125,9 +155,12 @@ export default function ArticleFormPage() {
         </div>
 
         {apiError && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl">
+          <div className="flex items-center gap-3 p-4 bg-red-50 ..."> 
             <XCircle size={20} />
-            <p className="font-medium text-sm">{apiError}</p>
+            {/* On s'assure d'afficher du texte, pas un objet */}
+            <p className="font-medium text-sm">
+              {typeof apiError === 'string' ? apiError : "Erreur de format de données"}
+            </p>
           </div>
         )}
 
@@ -218,7 +251,7 @@ export default function ArticleFormPage() {
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest ml-1">Catégorie</span>
                 <select
                   name="categoryId"
-                  value={formData.categoryId}
+                  value={formData.categoryId} 
                   onChange={handleChange}
                   disabled={loadingCategories}
                   className={`${inputClass('categoryId')} mt-1 bg-gray-50`}

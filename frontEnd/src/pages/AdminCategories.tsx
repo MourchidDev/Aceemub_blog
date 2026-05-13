@@ -175,7 +175,7 @@ export default function AdminCategories() {
       cancelButtonText: 'Annuler',
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      borderRadius: '1rem',
+      // borderRadius: '1rem',
       customClass: {
         popup: '!rounded-2xl',
         confirmButton: '!rounded-xl !font-medium',

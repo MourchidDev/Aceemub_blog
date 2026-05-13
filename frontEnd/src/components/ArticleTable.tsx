@@ -29,16 +29,18 @@ const ArticleTable = ({ articles, onEdit, onDelete }: Props) => {
                   <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50 shadow-sm">
                     <img
                       src={article.coverImage ?? '/placeholder.png'}
-                      alt={article.title}
+                      alt="" // On laisse alt vide ou on s'assure que c'est une string
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="font-bold text-slate-800 truncate max-w-[200px] md:max-w-xs group-hover:text-emerald-700 transition-colors">
-                      {article.title}
+                      {/* SÉCURITÉ : On force le rendu en string ou on met un fallback */}
+                      {typeof article.title === 'string' ? article.title : 'Titre non disponible'}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium truncate">
-                      id: {article.id.split('-')[0]}...
+                    <span className="text-[10px] text-slate-400 font-medium truncate italic">
+                      {/* On affiche la catégorie si elle existe, sinon l'ID */}
+                      {article.category?.name ? `Catégorie: ${article.category.name}` : `ID: ${article.id.split('-')[0]}...`}
                     </span>
                   </div>
                 </div>
