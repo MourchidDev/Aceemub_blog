@@ -7,6 +7,7 @@ import prisma from "./config/prisma.js"
 import authRoutes from "./routes/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import categoriesRouter from "./routes/categories.js";
+import membershipRouter from "./routes/membership.js";
 
 const app = express();
 
@@ -86,6 +87,7 @@ test();
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/categories", categoriesRouter);
+app.use("/api/membership", membershipRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

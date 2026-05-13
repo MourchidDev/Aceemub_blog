@@ -13,6 +13,7 @@ import Vision from '../pages/Vision';
 import Announcements from '../pages/Announcements';
 import FAQ from '../pages/FAQ';
 import AuthPage from '../pages/AuthPage';
+import MemberCardPage from '../pages/MemberCard';
 import { useAuth } from '../context/AuthContext';
 
 function RequireAuth() {
@@ -43,6 +44,7 @@ export default function AppRouter() {
         <Route path="/association" element={<AboutPage />} />
         <Route path="/connexion" element={<AuthPage mode="login" />} />
         <Route path="/inscription" element={<AuthPage mode="register" />} />
+        <Route path="/membre/:id" element={<MemberCardPage />} />
 
         <Route element={<RequireAuth />}>
           <Route path="/blog" element={<BlogPage />} />

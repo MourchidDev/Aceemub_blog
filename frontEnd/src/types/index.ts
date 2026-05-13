@@ -39,12 +39,30 @@ export interface ContactPayload {
 }
 
 export interface MembershipPayload {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   school: string;
   level: string;
   city: string;
+  photo?: File | null;
+}
+
+export interface MembershipCard {
+  id: string;
+  memberNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  school: string;
+  level: string;
+  city: string;
+  photoDataUrl?: string | null;
+  qrCode: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Category {
