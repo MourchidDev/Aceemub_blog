@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import Swal from 'sweetalert2';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../hooks/useCategories';
+import { useNotification } from '../components/NotificationContainer';
+import { useConfirm } from '../hooks/useConfirm';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { Category } from '../types';
 import { Plus, Pencil, Trash2, Tag, Hash, FileText, X } from 'lucide-react';
 import Loader from '../components/Loader';
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
 
 interface CategoryModalProps {
   initial?: { name: string; slug: string };
@@ -34,12 +33,8 @@ function CategoryModal({ initial, isEdit, isPending, onClose, onSubmit }: Catego
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Panel */}
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
@@ -56,8 +51,6 @@ function CategoryModal({ initial, isEdit, isPending, onClose, onSubmit }: Catego
             <X size={18} />
           </button>
         </div>
-
-        {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -75,7 +68,6 @@ function CategoryModal({ initial, isEdit, isPending, onClose, onSubmit }: Catego
               />
             </div>
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Slug <span className="text-red-400">*</span>
@@ -92,8 +84,6 @@ function CategoryModal({ initial, isEdit, isPending, onClose, onSubmit }: Catego
             </div>
             <p className="mt-1 text-xs text-gray-400">Généré automatiquement depuis le nom</p>
           </div>
-
-          {/* Footer */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -116,13 +106,14 @@ function CategoryModal({ initial, isEdit, isPending, onClose, onSubmit }: Catego
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function AdminCategories() {
   const { data: categories, isLoading } = useCategories();
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
+
+  const { success, error } = useNotification();
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -147,46 +138,31 @@ export default function AdminCategories() {
       updateMutation.mutate(
         { id: editingCategory.id, ...data },
         {
-          onSuccess: () => {
-            toast.success('Catégorie mise à jour');
-            closeModal();
-          },
-          onError: () => toast.error('Erreur lors de la mise à jour'),
+          onSuccess: () => { success('Catégorie mise à jour'); closeModal(); },
+          onError: () => error('Erreur lors de la mise à jour'),
         }
       );
     } else {
       createMutation.mutate(data, {
-        onSuccess: () => {
-          toast.success('Catégorie créée avec succès');
-          closeModal();
-        },
-        onError: () => toast.error('Erreur lors de la création'),
+        onSuccess: () => { success('Catégorie créée avec succès'); closeModal(); },
+        onError: () => error('Erreur lors de la création'),
       });
     }
   };
 
   const handleDelete = async (cat: Category) => {
-    const result = await Swal.fire({
+    const confirmed = await confirm({
       title: 'Supprimer la catégorie ?',
-      html: `<span class="text-gray-500">La catégorie <strong>${cat.name}</strong> sera supprimée définitivement.</span>`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Supprimer',
-      cancelButtonText: 'Annuler',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      // borderRadius: '1rem',
-      customClass: {
-        popup: '!rounded-2xl',
-        confirmButton: '!rounded-xl !font-medium',
-        cancelButton: '!rounded-xl !font-medium',
-      },
+      message: `La catégorie <strong>${cat.name}</strong> sera supprimée définitivement.`,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      confirmColor: 'danger',
     });
 
-    if (result.isConfirmed) {
+    if (confirmed) {
       deleteMutation.mutate(cat.id, {
-        onSuccess: () => toast.success('Catégorie supprimée'),
-        onError: () => toast.error('Erreur lors de la suppression'),
+        onSuccess: () => success('Catégorie supprimée'),
+        onError: () => error('Erreur lors de la suppression'),
       });
     }
   };
@@ -196,9 +172,6 @@ export default function AdminCategories() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
       <Loader isLoading={isLoading} />
-      <Toaster position="top-right" toastOptions={{ className: '!rounded-xl !text-sm' }} />
-
-      {/* Header */}
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -216,7 +189,6 @@ export default function AdminCategories() {
           </button>
         </div>
 
-        {/* Table */}
         {isLoading ? null : !categories?.length ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">
             <Tag size={40} className="mb-3 opacity-30" />
@@ -279,7 +251,6 @@ export default function AdminCategories() {
         )}
       </div>
 
-      {/* Modal */}
       {modalOpen && (
         <CategoryModal
           initial={editingCategory ? { name: editingCategory.name, slug: editingCategory.slug } : undefined}
@@ -287,6 +258,14 @@ export default function AdminCategories() {
           isPending={isPending}
           onClose={closeModal}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {isOpen && options && (
+        <ConfirmDialog
+          {...options}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
         />
       )}
     </div>
