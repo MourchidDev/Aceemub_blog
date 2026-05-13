@@ -9,7 +9,7 @@ const articleSchema = z.object({
   content: z.string().min(1, "Le contenu est requis"),
   categoryId: z.string().min(1, "La catégorie est requise"),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("DRAFT"),
-  coverImage: z.string().optional(),
+  coverImage: z.string().nullable().optional(),
 });
 
 export default articleSchema;

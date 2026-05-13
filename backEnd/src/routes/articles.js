@@ -25,6 +25,6 @@ router.get("/:id", getArticleByIdController);
 router.put("/:id", upload.single('coverImage'), updateArticleController);
 router.delete("/:id", deleteArticleController);
 router.post("/:id/publish",  publishArticleController);
-router.post("/:id/archive", authorize("ADMIN", "EDITOR"), archiveArticleController);
+router.post("/:id/archive", archiveArticleController);
 
 export default router;

@@ -7,17 +7,19 @@ import { useCategories } from '../hooks/useCategories';
 import { useArticle } from '../hooks/useArticles';
 import Editor from '../components/Editor';
 import { ArticlePayload } from '../types';
+import { useNotification } from '../components/NotificationContainer';
 
 type FormState = ArticlePayload & { id?: string };
 
-const slugify = (str: string) =>
-  str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+// const slugify = (str: string) =>
+//   str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
 export default function ArticleFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { success, error: notifyError } = useNotification();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const { data: initialData } = useArticle(id ?? '');
@@ -30,23 +32,17 @@ export default function ArticleFormPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof ArticlePayload, string>>>({});
   const [preview, setPreview] = useState<string | null>(null);
 
-  // GESTION DE L'HYDRATATION : On remplit le state quand les données arrivent
   useEffect(() => {
     if (initialData) {
-      // 1. On détermine l'ID de la catégorie de manière sécurisée
       let targetId = '';
       
       if (initialData.category && typeof initialData.category === 'object' && 'id' in initialData.category) {
-        // Si l'objet complet est dans la propriété 'category' (cas classique Prisma include)
         targetId = initialData.category.id;
       } else if (initialData.categoryId && typeof initialData.categoryId === 'object' && 'id' in initialData.categoryId) {
-        // Si l'objet est niché dans 'categoryId'
         targetId = (initialData.categoryId as any).id;
       } else if (typeof initialData.categoryId === 'string') {
-        // Si c'est déjà un string
         targetId = initialData.categoryId;
       }
-      // else targetId reste '' (null case)
 
       setFormData({
         id: initialData.id,
@@ -70,10 +66,6 @@ export default function ArticleFormPage() {
         const catSlug = categories.find(c => c.id === value)?.slug ?? '';
         updated.slug = catSlug;
       }
-      // if (name === 'title') {
-      //   const catSlug = categories.find(c => c.id === prev.categoryId)?.slug ?? '';
-      //   updated.slug = catSlug ? `${catSlug}-${slugify(value)}` : slugify(value);
-      // }
       return updated;
     });
     if (errors[name as keyof ArticlePayload]) {
@@ -89,32 +81,37 @@ export default function ArticleFormPage() {
     }
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const validation = validateArticle(formData);
-  if (!validation.isValid) { setErrors(validation.errors); return; }
-  
-  try {
-    if (imageFile) {
-      // Avec fichier : envoyer FormData
-      const payload = new FormData();
-      payload.append('title', formData.title);
-      payload.append('slug', formData.slug);
-      payload.append('content', formData.content);
-      payload.append('status', formData.status || '');
-      payload.append('categoryId', formData.categoryId || '');
-      payload.append('coverImage', imageFile);
-      if (isEdit && formData.id) payload.append('id', formData.id);
-      
-      await submitArticle(payload as any, isEdit);
-    } else {
-      // Sans fichier : envoyer JSON
-      await submitArticle(formData, isEdit);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validation = validateArticle(formData);
+    if (!validation.isValid) { 
+      setErrors(validation.errors);
+      notifyError('Veuillez corriger les erreurs dans le formulaire');
+      return;
     }
     
-    navigate('/admin/articles');
-  } catch { }
-};
+    try {
+      if (imageFile) {
+        const payload = new FormData();
+        payload.append('title', formData.title);
+        payload.append('slug', formData.slug);
+        payload.append('content', formData.content);
+        payload.append('status', formData.status || '');
+        payload.append('categoryId', formData.categoryId || '');
+        payload.append('coverImage', imageFile);
+        if (isEdit && formData.id) payload.append('id', formData.id);
+        
+        await submitArticle(payload as any, isEdit);
+      } else {
+        await submitArticle(formData, isEdit);
+      }
+      
+      success(isEdit ? 'Article modifié avec succès' : 'Article créé avec succès');
+      navigate('/admin/articles');
+    } catch (err) {
+      notifyError('Une erreur est survenue lors de l\'enregistrement');
+    }
+  };
 
   const labelClass = "flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5";
   const inputBase = "block w-full transition-all duration-200 border rounded-xl p-3 focus:ring-4 focus:outline-none";
@@ -154,16 +151,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         </div>
 
-        {apiError && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 ..."> 
-            <XCircle size={20} />
-            {/* On s'assure d'afficher du texte, pas un objet */}
-            <p className="font-medium text-sm">
-              {typeof apiError === 'string' ? apiError : "Erreur de format de données"}
-            </p>
-          </div>
-        )}
-
         {/* Body : 2 colonnes sur lg, 1 colonne sur mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -183,7 +170,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 {errors.title && <p className="text-red-500 text-xs mt-2 ml-1 font-medium italic">{errors.title}</p>}
               </div>
 
-              <div>
+              {/* <div>
                 <label className={labelClass}><Link size={16} className="text-emerald-500" /> URL de l'article (Slug)</label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-sm select-none">/blog/</span>
@@ -196,7 +183,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   />
                 </div>
                 {errors.slug && <p className="text-red-500 text-xs mt-2 ml-1 font-medium italic">{errors.slug}</p>}
-              </div>
+              </div> */}
 
               <div>
                 <label className={labelClass}><FileText size={16} className="text-emerald-500" /> Contenu de l'article</label>

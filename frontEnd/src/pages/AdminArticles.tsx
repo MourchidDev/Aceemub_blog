@@ -5,7 +5,9 @@ import { useArticles, useDeleteArticle, usePublishArticle, useArchiveArticle } f
 import ArticleTable from '../components/ArticleTable';
 import { Article } from '../types';
 import Loader from '../components/Loader';
-import toast, { Toaster } from 'react-hot-toast';
+import { useNotification } from '../components/NotificationContainer';
+import { useConfirm } from '../hooks/useConfirm';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function AdminArticles() {
   const navigate = useNavigate();
@@ -13,45 +15,74 @@ export default function AdminArticles() {
   const deleteMutation = useDeleteArticle();
   const publishMutation = usePublishArticle();
   const archiveMutation = useArchiveArticle();
+  const { success, error } = useNotification();
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
 
   const handleEdit = (article: Article) =>
     navigate(`/admin/articles/${article.id}/edit`);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Voulez-vous vraiment supprimer cet article ? Cette action est irréversible.')) return;
+    const confirmed = await confirm({
+      title: 'Supprimer cet article ?',
+      message: 'Cette action est <strong>irréversible</strong>. L\'article sera définitivement supprimé.',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      confirmColor: 'danger',
+    });
+
+    if (!confirmed) return;
+
     try {
       await deleteMutation.mutateAsync(id);
-      toast.success('Article supprimé avec succès');
-    } catch (error) {
-      toast.error('Erreur lors de la suppression');
-      console.error("Erreur lors de la suppression", error);
+      success('Article supprimé avec succès');
+    } catch (err) {
+      error('Erreur lors de la suppression de l\'article');
+      console.error("Erreur lors de la suppression", err);
     }
   };
 
   const handlePublish = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Publier cet article ?',
+      message: 'L\'article sera visible par tous les visiteurs du site.',
+      confirmText: 'Publier',
+      cancelText: 'Annuler',
+      confirmColor: 'primary',
+    });
+
+    if (!confirmed) return;
+
     try {
       await publishMutation.mutateAsync(id);
-      toast.success('Article publié avec succès');
-    } catch (error) {
-      toast.error('Erreur lors de la publication');
-      console.error("Erreur lors de la publication", error);
+      success('Article publié avec succès');
+    } catch (err) {
+      error('Erreur lors de la publication');
+      console.error("Erreur lors de la publication", err);
     }
   };
 
   const handleArchive = async (id: string) => {
-    if (!confirm('Voulez-vous archiver cet article ?')) return;
+    const confirmed = await confirm({
+      title: 'Archiver cet article ?',
+      message: 'L\'article ne sera plus visible publiquement mais restera accessible dans les archives.',
+      confirmText: 'Archiver',
+      cancelText: 'Annuler',
+      confirmColor: 'primary',
+    });
+
+    if (!confirmed) return;
+
     try {
       await archiveMutation.mutateAsync(id);
-      toast.success('Article archivé avec succès');
-    } catch (error) {
-      toast.error('Erreur lors de l\'archivage');
-      console.error("Erreur lors de l'archivage", error);
+      success('Article archivé avec succès');
+    } catch (err) {
+      error('Erreur lors de l\'archivage');
+      console.error("Erreur lors de l'archivage", err);
     }
   };
 
   return (
     <div className="space-y-6">
-      <Toaster position="top-right" />
       <Loader isLoading={isLoading} />
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -101,6 +132,15 @@ export default function AdminArticles() {
           </div>
         ) : null}
       </div>
+
+      {/* Dialog de confirmation */}
+      {isOpen && options && (
+        <ConfirmDialog
+          {...options}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
+      )}
     </div>
   );
 }
