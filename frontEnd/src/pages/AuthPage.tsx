@@ -164,7 +164,6 @@ export default function AuthPage({ mode }: { mode: AuthMode }) {
         <div className="auth-form-panel flex items-center justify-center px-5 py-8 sm:px-8 lg:px-12 xl:px-20">
           <div className="w-full max-w-md">
             <div className="mb-8">
-              <p className="text-sm font-semibold text-aemb-gold">Espace membre</p>
               <h2 className="mt-2 font-serif text-3xl font-bold text-aemb-green sm:text-4xl">{title}</h2>
               <p className="mt-3 text-sm leading-6 text-gray-500">
                 {isRegister
