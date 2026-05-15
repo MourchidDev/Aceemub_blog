@@ -61,10 +61,14 @@ function toPublicCard(card) {
   };
 }
 
-function createMemberNumber() {
+async function createMemberNumber() {
   const year = new Date().getFullYear();
-  const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`.toUpperCase();
-  return `ACE-${year}-${suffix}`;
+  const prefix = `ACEEMUB-${year}-`;
+  const cardsThisYear = await prisma.membershipCard.count({
+    where: { memberNumber: { startsWith: prefix } },
+  });
+
+  return `${prefix}${String(cardsThisYear + 1).padStart(4, "0")}`;
 }
 
 function dataUrlToBuffer(dataUrl) {
@@ -80,14 +84,23 @@ function drawImageIfExists(doc, filePath, x, y, options) {
   if (fs.existsSync(filePath)) doc.image(filePath, x, y, options);
 }
 
+function drawClippedImageIfExists(doc, filePath, frame, image) {
+  if (!fs.existsSync(filePath)) return;
+
+  doc.save();
+  doc.roundedRect(frame.x, frame.y, frame.width, frame.height, frame.radius).clip();
+  doc.image(filePath, image.x, image.y, image.options);
+  doc.restore();
+}
+
 async function buildQrCode(cardId, memberNumber) {
   const frontendUrl = process.env.FRONTEND_URL?.split(",")[0]?.trim() ?? "http://localhost:5173";
   const verificationUrl = `${frontendUrl}/membre/${cardId}`;
-  return QRCode.toDataURL(JSON.stringify({ memberNumber, verificationUrl }));
+  return QRCode.toDataURL(verificationUrl);
 }
 
 async function createMembershipCard(data, photo) {
-  const memberNumber = createMemberNumber();
+  const memberNumber = await createMemberNumber();
   const photoDataUrl = photo ? `data:${photo.mimetype};base64,${photo.buffer.toString("base64")}` : null;
   const placeholderQrCode = await QRCode.toDataURL(memberNumber);
 
@@ -215,33 +228,39 @@ router.get("/:id/pdf", async (req, res, next) => {
 
     doc.rect(0, 0, 640, 380).fill("#FDFCFB");
     doc.rect(0, 0, 640, 108).fill("#065F46");
-    doc.roundedRect(30, 18, 76, 72, 8).fill("#FFFFFF");
+    doc.roundedRect(24, 14, 92, 82, 8).fill("#FFFFFF");
     doc.roundedRect(534, 18, 76, 72, 8).fill("#FFFFFF");
-    drawImageIfExists(doc, getAssetPath("benin-logo.png"), 32, 20, { width: 72, height: 68, fit: [72, 68] });
+    drawClippedImageIfExists(
+      doc,
+      getAssetPath("benin-logo.png"),
+      { x: 24, y: 14, width: 92, height: 82, radius: 8 },
+      { x: 10, y: 18, options: { width: 120, height: 112, fit: [120, 112] } },
+    );
     drawImageIfExists(doc, getAssetPath("ac.png"), 542, 24, { width: 60, height: 60, fit: [60, 60] });
-    doc.fillColor("#FFFFFF").fontSize(22).font("Helvetica-Bold").text("ACEEMUB Benin", 120, 28, {
+    doc.fillColor("#FFFFFF").fontSize(26).font("Helvetica-Bold").text("ACEEMUB Benin", 120, 24, {
       width: 400,
       align: "center",
     });
-    doc.fontSize(10).font("Helvetica").text("Carte membre officielle", 120, 62, {
+    doc.fontSize(12).font("Helvetica").text("Carte membre officielle", 120, 62, {
       width: 400,
       align: "center",
     });
 
     doc.roundedRect(28, 124, 584, 210, 10).fillAndStroke("#FFFFFF", "#D9E7DF");
-    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(card.memberNumber, 44, 142);
+    doc.fillColor("#065F46").fontSize(9).font("Helvetica-Bold").text("MATRICULE", 44, 140);
+    doc.fillColor("#065F46").fontSize(13).font("Helvetica-Bold").text(card.memberNumber, 44, 154);
 
     if (card.photoDataUrl) {
-      doc.image(dataUrlToBuffer(card.photoDataUrl), 44, 166, { width: 98, height: 112, fit: [98, 112] });
+      doc.image(dataUrlToBuffer(card.photoDataUrl), 44, 176, { width: 98, height: 112, fit: [98, 112] });
     } else {
-      doc.roundedRect(44, 166, 98, 112, 8).fill("#E5E7EB");
-      doc.fillColor("#6B7280").fontSize(10).text("Photo", 78, 216);
+      doc.roundedRect(44, 176, 98, 112, 8).fill("#E5E7EB");
+      doc.fillColor("#6B7280").fontSize(10).text("Photo", 78, 226);
     }
 
-    doc.fillColor("#111827").fontSize(22).font("Helvetica-Bold").text(fullName, 164, 166, { width: 270 });
-    doc.fillColor("#374151").fontSize(12).font("Helvetica").text(card.school, 164, 203, { width: 270 });
-    doc.text(`${card.level} - ${card.city}`, 164, 226, { width: 270 });
-    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(`Membre depuis le ${memberSince}`, 164, 262);
+    doc.fillColor("#111827").fontSize(22).font("Helvetica-Bold").text(fullName, 164, 176, { width: 270 });
+    doc.fillColor("#374151").fontSize(12).font("Helvetica").text(card.school, 164, 213, { width: 270 });
+    doc.text(`${card.level} - ${card.city}`, 164, 236, { width: 270 });
+    doc.fillColor("#065F46").fontSize(11).font("Helvetica-Bold").text(`Membre depuis le ${memberSince}`, 164, 272);
 
     doc.image(dataUrlToBuffer(card.qrCode), 484, 162, { width: 92, height: 92 });
     doc.fillColor("#6B7280").fontSize(8).font("Helvetica").text("Scanner pour verifier", 472, 262, { width: 120, align: "center" });

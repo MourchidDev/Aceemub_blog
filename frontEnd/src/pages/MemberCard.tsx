@@ -68,13 +68,17 @@ export default function MemberCardPage() {
   return (
     <main className="min-h-screen bg-aemb-cream px-6 py-32">
       <section className="mx-auto max-w-3xl overflow-hidden rounded-lg border border-emerald-900/10 bg-white shadow-2xl shadow-emerald-950/10">
-        <div className="grid grid-cols-[100px_1fr_100px] items-center gap-4 bg-aemb-green px-8 py-6 text-white">
-          <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white/95 p-0.5 shadow-sm">
-            <img src={beninLogo} alt="Logo du gouvernement beninois" className="h-full w-full object-contain" />
+        <div className="grid grid-cols-[120px_1fr_100px] items-center gap-4 bg-aemb-green px-8 py-7 text-white">
+          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-lg bg-white/95 shadow-sm">
+            <img
+              src={beninLogo}
+              alt="Logo du gouvernement beninois"
+              className="h-full w-full translate-y-9 scale-[2.15] object-contain"
+            />
           </div>
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
-            <h1 className="mt-2 font-serif text-3xl font-bold">Verification carte membre</h1>
+            <p className="text-base font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
+            <h1 className="mt-2 font-serif text-4xl font-bold">Verification carte membre</h1>
           </div>
           <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white/95 p-2 shadow-sm">
             <img src={appLogo} alt="Logo ACEEMUB" className="h-full w-full object-contain" />
@@ -93,7 +97,8 @@ export default function MemberCardPage() {
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-aemb-gold">{card.memberNumber}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-aemb-gold">Matricule</p>
+            <p className="mt-1 text-sm font-extrabold uppercase tracking-[0.12em] text-aemb-green">{card.memberNumber}</p>
             <h2 className="mt-2 text-3xl font-bold text-slate-950">{fullName}</h2>
             <p className="mt-3 font-medium text-slate-700">{card.school}</p>
             <p className="text-sm text-slate-500">
