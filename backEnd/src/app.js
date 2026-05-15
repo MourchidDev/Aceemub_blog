@@ -13,6 +13,7 @@ import articles from "./routes/articles.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import membershipRouter from "./routes/membership.js";
 
 const app = express();
 
@@ -77,6 +78,7 @@ connectDb();
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/categories", categoriesRouter);
 app.use("/api/articles", articles);   
+app.use("/api/membership", membershipRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
