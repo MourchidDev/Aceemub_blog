@@ -1,25 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Calendar, ChevronRight, ArrowRight, Mail } from 'lucide-react';
+import { Search, Calendar, ArrowRight, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useArticles } from '../hooks/useArticles';
-
-const CATEGORIES = ["Tous", "Spiritualité", "Réussite", "Actualités", "Société", "Formation"];
+import { useCategories } from '../hooks/useCategories';
+import Loader from '../components/Loader';
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("Tous");
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: ALL_ARTICLES = [] } = useArticles();
+  const { data: ALL_ARTICLES = [], isLoading } = useArticles();
+  const { data: categories = [] } = useCategories();
 
-  const filteredArticles = ALL_ARTICLES.filter(art => {
-    const matchesCategory = activeCategory === "Tous" || art.category === activeCategory;
-    const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         art.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const CATEGORIES = useMemo(() => {
+    const cats = ["Tous", ...categories.map(c => c.name)];
+    return cats;
+  }, [categories]);
+
+  const filteredArticles = useMemo(() => {
+    return ALL_ARTICLES.filter(art => {
+      const matchesCategory = activeCategory === "Tous" || art.category?.name === activeCategory;
+      const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           (art.excerpt && art.excerpt.toLowerCase().includes(searchQuery.toLowerCase()));
+      const isPublished = art.status === 'PUBLISHED';
+      return matchesCategory && matchesSearch && isPublished;
+    });
+  }, [ALL_ARTICLES, activeCategory, searchQuery]);
 
   return (
     <div className="pt-24 pb-20">
+      <Loader isLoading={isLoading} />
+      
       {/* Blog Hero */}
       <section className="bg-emerald-900 py-20 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-aemb-gold/10 skew-x-12 transform translate-x-20" />
@@ -39,7 +50,6 @@ export default function BlogPage() {
       {/* Filters & Search */}
       <section className="py-12 bg-white border-b border-slate-100 sticky top-[72px] z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-          {/* Categories */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto no-scrollbar">
             {CATEGORIES.map((cat) => (
               <button
@@ -56,7 +66,6 @@ export default function BlogPage() {
             ))}
           </div>
 
-          {/* Search Bar */}
           <div className="relative w-full md:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
@@ -84,13 +93,13 @@ export default function BlogPage() {
               >
                 <div className="aspect-[16/10] overflow-hidden relative">
                   <img 
-                    src={art.image} 
+                    src={art.coverImage || art.image} 
                     alt={art.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-aemb-green px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">
-                    {art.category}
+                    {art.category?.name || 'Non catégorisé'}
                   </div>
                 </div>
                 
@@ -98,8 +107,12 @@ export default function BlogPage() {
                   <div className="flex items-center gap-3 text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">
                     <Calendar size={14} />
                     <span>{art.date}</span>
-                    <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                    <span>Par {art.author}</span>
+                    {art.author?.name && (
+                      <>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                        <span>Par {art.author.name}</span>
+                      </>
+                    )}
                   </div>
                   
                   <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-aemb-green transition-colors leading-snug">
@@ -131,20 +144,6 @@ export default function BlogPage() {
               className="mt-6 text-aemb-green font-bold underline"
             >
               Réinitialiser tout
-            </button>
-          </div>
-        )}
-
-        {/* Pagination Placeholder */}
-        {filteredArticles.length > 0 && (
-          <div className="mt-20 flex justify-center gap-2">
-            {[1, 2, 3].map(n => (
-              <button key={n} className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold transition-all ${n === 1 ? 'bg-aemb-green text-white shadow-lg' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-                {n}
-              </button>
-            ))}
-            <button className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50">
-              <ChevronRight size={20} />
             </button>
           </div>
         )}

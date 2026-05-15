@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { LogOut, Menu, UserCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import sharedImage from '../assets/ac.png';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,7 +44,8 @@ export default function Navbar() {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || !isHome ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-aemb-green rounded-full flex items-center justify-center text-white font-bold text-xl">A</div>
+            {/* <div className="w-10 h-10 bg-aemb-green rounded-full flex items-center justify-center text-white font-bold text-xl">A</div> */}
+             <img src={sharedImage} alt="Logo ACEEMUB" className="w-15 h-15 rounded-full flex items-center justify-center" />
             <span className="font-serif text-xl font-bold text-aemb-green">ACEEMUB Benin</span>
           </Link>
 

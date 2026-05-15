@@ -15,6 +15,10 @@ import FAQ from '../pages/FAQ';
 import AuthPage from '../pages/AuthPage';
 import MemberCardPage from '../pages/MemberCard';
 import { useAuth } from '../context/AuthContext';
+import AdminCategories from '../pages/AdminCategories';
+import AdminLayout from '../layouts/AdminLayout';
+import AdminArticles from '../pages/AdminArticles';
+import ArticleFormPage from '../pages/ArticleFormPage';
 
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,7 +38,7 @@ function RequireAuth() {
 
   return <Outlet />;
 }
-import AdminCategories from '../pages/AdminCategories';
+
 
 export default function AppRouter() {
   return (
@@ -57,7 +61,14 @@ export default function AppRouter() {
           <Route path="/annonces" element={<Announcements />} />
           <Route path="/faq" element={<FAQ />} />
         </Route>
-        <Route path="/admin/categories" element={<AdminCategories />} />
+         {/* Routes admin */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/articles" replace />} />
+        <Route path="categories" element={<AdminCategories />} />
+        <Route path="articles" element={<AdminArticles />} />
+        <Route path="articles/new" element={<ArticleFormPage />} />
+        <Route path="articles/:id/edit" element={<ArticleFormPage />} />
+      </Route>
       </Route>
     </Routes>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
+import sharedImage from '../assets/ac.png';
 
 export default function Footer() {
   return (
@@ -8,7 +9,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
         <div>
           <Link to="/" className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-aemb-green rounded-full flex items-center justify-center text-white font-bold">A</div>
+            <img src={sharedImage} alt="Logo ACEEMUB" className="w-10 h-10 rounded-full flex items-center justify-center" />
             <span className="font-serif text-xl font-bold">ACEEMUB Bénin</span>
           </Link>
           <p className="text-slate-400 text-sm leading-relaxed mb-6">
