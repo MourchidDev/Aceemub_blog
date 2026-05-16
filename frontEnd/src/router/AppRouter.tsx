@@ -13,7 +13,12 @@ import Vision from '../pages/Vision';
 import Announcements from '../pages/Announcements';
 import FAQ from '../pages/FAQ';
 import AuthPage from '../pages/AuthPage';
+import MemberCardPage from '../pages/MemberCard';
 import { useAuth } from '../context/AuthContext';
+import AdminCategories from '../pages/AdminCategories';
+import AdminLayout from '../layouts/AdminLayout';
+import AdminArticles from '../pages/AdminArticles';
+import ArticleFormPage from '../pages/ArticleFormPage';
 
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,7 +38,7 @@ function RequireAuth() {
 
   return <Outlet />;
 }
-import AdminCategories from '../pages/AdminCategories';
+
 import AdminEvents from '../pages/AdminEvents';
 
 export default function AppRouter() {
@@ -44,6 +49,7 @@ export default function AppRouter() {
         <Route path="/association" element={<AboutPage />} />
         <Route path="/connexion" element={<AuthPage mode="login" />} />
         <Route path="/inscription" element={<AuthPage mode="register" />} />
+        <Route path="/membre/:id" element={<MemberCardPage />} />
 
         <Route element={<RequireAuth />}>
           <Route path="/blog" element={<BlogPage />} />
@@ -56,8 +62,15 @@ export default function AppRouter() {
           <Route path="/annonces" element={<Announcements />} />
           <Route path="/faq" element={<FAQ />} />
         </Route>
-        <Route path="/admin/categories" element={<AdminCategories />} />
-        <Route path="/admin/evenements" element={<AdminEvents />} />
+         {/* Routes admin */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/evenements" element={<AdminEvents />} />
+        <Route index element={<Navigate to="/admin/articles" replace />} />
+        <Route path="categories" element={<AdminCategories />} />
+        <Route path="articles" element={<AdminArticles />} />
+        <Route path="articles/new" element={<ArticleFormPage />} />
+        <Route path="articles/:id/edit" element={<ArticleFormPage />} />
+      </Route>
       </Route>
     </Routes>
   );

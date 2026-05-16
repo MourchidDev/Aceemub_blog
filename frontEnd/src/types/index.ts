@@ -1,13 +1,19 @@
 export interface Article {
-  id: number;
+  id: string;          
   title: string;
-  category: string;
-  date: string;
-  image: string;
-  excerpt: string;
-  author?: string;
-  content?: string;
-  slug?: string;
+  slug: string;
+  content: string;
+  coverImage?: string | null;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  authorId: string;
+  author?: { id: string; name: string; email: string };
+  categoryId?: string | null;
+  category?: { id: string; name: string; slug: string } | null;
+  createdAt: string;
+  updatedAt: string;
+  date?: string;
+  image?: string;
+  excerpt?: string;
 }
 
 export interface Media {
@@ -27,6 +33,7 @@ export interface Album {
 }
 
 export type ContentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
 
 export interface Event {
   id: string;
@@ -77,12 +84,30 @@ export interface ContactPayload {
 }
 
 export interface MembershipPayload {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   school: string;
   level: string;
   city: string;
+  photo?: File | null;
+}
+
+export interface MembershipCard {
+  id: string;
+  memberNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  school: string;
+  level: string;
+  city: string;
+  photoDataUrl?: string | null;
+  qrCode: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Category {
@@ -91,4 +116,13 @@ export interface Category {
   slug: string;
   _count?: { articles: number };
   createdAt?: string;
+}
+
+export interface ArticlePayload {
+  title: string;
+  slug: string;
+  content: string;
+  categoryId: string;
+  coverImage?: string;
+  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }

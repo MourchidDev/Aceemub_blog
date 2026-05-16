@@ -72,7 +72,7 @@ model User {
 model Article {
   id            String        @id @default(uuid())
   title         String
-  slug          String        @unique
+  slug          String        
   content       String
   coverImage    String?
   status        ContentStatus @default(DRAFT)
@@ -209,12 +209,23 @@ model ContactMessage {
 model MembershipCard {
   id            String   @id @default(uuid())
   memberNumber  String   @unique
-  qrCode        String
+  firstName     String
+  lastName      String
+  email         String
+  phone         String
+  school        String
+  level         String
+  city          String
+  photoDataUrl  String?
+  qrCode        String   @db.Text
   isActive      Boolean  @default(true)
 
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt     DateTime @default(now())
-  expiresAt     DateTime
+  expiresAt     DateTime?
+
+  @@index([email])
+  @@index([createdAt])
 }
