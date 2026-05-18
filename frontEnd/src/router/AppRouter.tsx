@@ -64,7 +64,7 @@ export default function AppRouter() {
         </Route>
          {/* Routes admin */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route path="/evenements" element={<AdminEvents />} />
+        <Route path="evenements" element={<AdminEvents />} />
         <Route index element={<Navigate to="/admin/articles" replace />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="articles" element={<AdminArticles />} />

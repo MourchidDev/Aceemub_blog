@@ -1,11 +1,12 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Tag, Plus, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, Tag, Plus, ArrowLeft, CalendarDays } from 'lucide-react';
 
 const navItems = [
   { to: '/admin/articles', label: 'Articles', icon: <FileText size={18} /> },
   { to: '/admin/articles/new', label: 'Nouvel article', icon: <Plus size={18} /> },
   { to: '/admin/categories', label: 'Catégories', icon: <Tag size={18} /> },
+  { to: '/admin/evenements', label: 'Événements', icon: <CalendarDays size={18} /> },
 ];
 
 export default function AdminLayout() {
