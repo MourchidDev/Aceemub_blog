@@ -61,4 +61,13 @@ export const eventsApi = {
   deleteAlbum: async (eventId: string, albumId: string): Promise<void> => {
     await apiClient.delete(`/events/${eventId}/albums/${albumId}`);
   },
+
+  renameAlbum: async (eventId: string, albumId: string, title: string): Promise<Album> => {
+    const { data } = await apiClient.patch(`/events/${eventId}/albums/${albumId}`, { title });
+    return data;
+  },
+
+  deleteMedia: async (eventId: string, albumId: string, mediaId: string): Promise<void> => {
+    await apiClient.delete(`/events/${eventId}/albums/${albumId}/images/${mediaId}`);
+  },
 };

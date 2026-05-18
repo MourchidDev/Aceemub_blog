@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useAddAlbum } from '../hooks/useEvents';
 import { useNotification } from '../components/NotificationContainer';
 import { useConfirm } from '../hooks/useConfirm';
@@ -282,6 +283,7 @@ function AddAlbumModal({ isPending, onClose, onSubmit }: AddAlbumModalProps) {
 
 // ─── AdminEvents (main) ───────────────────────────────────────────────────────
 export default function AdminEvents() {
+  const navigate = useNavigate();
   const { data: events, isLoading } = useEvents();
   const createMutation = useCreateEvent();
   const updateMutation = useUpdateEvent();
@@ -391,7 +393,7 @@ export default function AdminEvents() {
                 {events.map((ev) => {
                   const cover = getCoverImage(ev);
                   return (
-                    <tr key={ev.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <tr key={ev.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
@@ -415,7 +417,14 @@ export default function AdminEvents() {
                       </td>
                       <td className="px-5 py-4 text-gray-500">{ev._count?.albums ?? ev.albums?.length ?? 0}</td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => navigate(`/admin/evenements/${ev.id}`)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+                          >
+                            <Eye size={12} />
+                            Voir
+                          </button>
                           <button
                             onClick={() => setAddAlbumEventId(ev.id)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"

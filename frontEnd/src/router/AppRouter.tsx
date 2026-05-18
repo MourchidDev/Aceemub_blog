@@ -40,6 +40,7 @@ function RequireAuth() {
 }
 
 import AdminEvents from '../pages/AdminEvents';
+import AdminEventDetail from '../pages/AdminEventDetail';
 
 export default function AppRouter() {
   return (
@@ -65,6 +66,7 @@ export default function AppRouter() {
          {/* Routes admin */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="evenements" element={<AdminEvents />} />
+        <Route path="evenements/:id" element={<AdminEventDetail />} />
         <Route index element={<Navigate to="/admin/articles" replace />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="articles" element={<AdminArticles />} />

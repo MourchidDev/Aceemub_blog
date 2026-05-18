@@ -59,3 +59,21 @@ export const useDeleteAlbum = () => {
     onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ['events', vars.eventId] }),
   });
 };
+
+export const useRenameAlbum = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, albumId, title }: { eventId: string; albumId: string; title: string }) =>
+      eventsApi.renameAlbum(eventId, albumId, title),
+    onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ['events', vars.eventId] }),
+  });
+};
+
+export const useDeleteMedia = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, albumId, mediaId }: { eventId: string; albumId: string; mediaId: string }) =>
+      eventsApi.deleteMedia(eventId, albumId, mediaId),
+    onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ['events', vars.eventId] }),
+  });
+};

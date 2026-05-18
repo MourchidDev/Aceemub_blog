@@ -294,4 +294,46 @@ router.delete("/:id/albums/:albumId", async (req, res) => {
   }
 });
 
+// ─── PATCH /api/events/:id/albums/:albumId ────────────────────────────────────
+// Renommer un album
+router.patch("/:id/albums/:albumId", async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title?.trim()) return res.status(400).json({ error: "Le titre est requis." });
+
+    const album = await prisma.album.findFirst({
+      where: { id: req.params.albumId, eventId: req.params.id },
+    });
+    if (!album) return res.status(404).json({ error: "Album introuvable" });
+
+    const updated = await prisma.album.update({
+      where: { id: req.params.albumId },
+      data: { title: title.trim() },
+      include: { media: true },
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erreur lors du renommage", details: err.message });
+  }
+});
+
+// ─── DELETE /api/events/:id/albums/:albumId/images/:mediaId ──────────────────
+// Supprimer une photo individuelle
+router.delete("/:id/albums/:albumId/images/:mediaId", async (req, res) => {
+  try {
+    const media = await prisma.media.findFirst({
+      where: { id: req.params.mediaId, albumId: req.params.albumId },
+    });
+    if (!media) return res.status(404).json({ error: "Image introuvable" });
+
+    const match = media.url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z]+$/i);
+    if (match) await deleteImage(match[1]).catch(() => {});
+
+    await prisma.media.delete({ where: { id: req.params.mediaId } });
+    res.json({ message: "Image supprimée" });
+  } catch (err) {
+    res.status(500).json({ error: "Erreur lors de la suppression de l'image", details: err.message });
+  }
+});
+
 export default router;
