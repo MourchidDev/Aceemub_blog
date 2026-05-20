@@ -4,6 +4,7 @@ import { Calendar, User, ArrowLeft, Share2, Facebook, Twitter, MessageCircle, Ar
 import { motion } from 'motion/react';
 import { useArticle } from '../hooks/useArticles';
 import Loader from '../components/Loader';
+import CommentSection from '../components/CommentSection';
 
 export default function ArticleDetail() {
   const { id } = useParams();
@@ -92,6 +93,7 @@ export default function ArticleDetail() {
               </div>
             </div>
           </div>
+          <CommentSection articleId={article.id} />
         </div>
       )}
     </div>

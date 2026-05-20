@@ -62,6 +62,20 @@ export interface Category {
   createdAt?: string;
 }
 
+export interface Comment {
+  id: string;
+  content: string;
+  authorId: string;
+  articleId: string;
+  createdAt: string;
+  user?: { id: string; name: string; email?: string };
+  article?: { id: string; title: string, slug: string };
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  replies?: Comment[];
+  authorName?: string;
+  authorEmail?: string;
+}
+
 export interface ArticlePayload {
   title: string;
   slug: string;

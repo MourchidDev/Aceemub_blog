@@ -3,6 +3,8 @@
 import articleSchema from "../../validators/articleValidator.js";
 import prisma from "../../lib/prisma.js";
 import DOMPurify from 'isomorphic-dompurify';
+
+
 const createArticle = async (data, user) => {
     const validationData = articleSchema.parse(data)
 
