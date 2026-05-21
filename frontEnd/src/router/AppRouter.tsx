@@ -19,6 +19,7 @@ import AdminCategories from '../pages/AdminCategories';
 import AdminLayout from '../layouts/AdminLayout';
 import AdminArticles from '../pages/AdminArticles';
 import ArticleFormPage from '../pages/ArticleFormPage';
+import AdminComments from '../pages/AdminComments';
 
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -72,6 +73,7 @@ export default function AppRouter() {
         <Route path="articles" element={<AdminArticles />} />
         <Route path="articles/new" element={<ArticleFormPage />} />
         <Route path="articles/:id/edit" element={<ArticleFormPage />} />
+        <Route path="comments" element={<AdminComments />} />
       </Route>
       </Route>
     </Routes>

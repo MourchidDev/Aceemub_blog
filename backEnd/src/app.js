@@ -11,6 +11,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import categoriesRouter from "./routes/categories.js";
 import eventsRouter from "./routes/events.js";
 import articles from "./routes/articles.js";
+import comments from "./routes/comments.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -79,8 +80,9 @@ connectDb();
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/categories", categoriesRouter);
 app.use("/api/events", eventsRouter);
-app.use("/api/articles", articles);   
+app.use("/api/articles", articles);
 app.use("/api/membership", membershipRouter);
+app.use("/api/comments", comments);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

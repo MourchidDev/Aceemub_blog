@@ -36,7 +36,7 @@ async function findMembershipCardForUser(user) {
     where: {
       OR: [
         { userId: user.id },
-        { email: { equals: email, mode: "insensitive" } },
+        { email: email },
       ],
     },
     orderBy: { createdAt: "desc" },
@@ -164,7 +164,7 @@ router.post("/apply", attachUserIfAuthenticated, upload.single("photo"), async (
       where: {
         OR: [
           ...(req.authUser ? [{ userId: req.authUser.id }] : []),
-          { email: { equals: data.email, mode: "insensitive" } },
+          { email: data.email.toLowerCase() },
         ],
       },
       orderBy: { createdAt: "desc" },
