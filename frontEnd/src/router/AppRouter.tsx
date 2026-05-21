@@ -13,6 +13,7 @@ import Vision from '../pages/Vision';
 import Announcements from '../pages/Announcements';
 import FAQ from '../pages/FAQ';
 import AuthPage from '../pages/AuthPage';
+import MemberCardPage from '../pages/MemberCard';
 import { useAuth } from '../context/AuthContext';
 import AdminCategories from '../pages/AdminCategories';
 import AdminLayout from '../layouts/AdminLayout';
@@ -39,6 +40,8 @@ function RequireAuth() {
   return <Outlet />;
 }
 
+import AdminEvents from '../pages/AdminEvents';
+import AdminEventDetail from '../pages/AdminEventDetail';
 
 export default function AppRouter() {
   return (
@@ -48,6 +51,7 @@ export default function AppRouter() {
         <Route path="/association" element={<AboutPage />} />
         <Route path="/connexion" element={<AuthPage mode="login" />} />
         <Route path="/inscription" element={<AuthPage mode="register" />} />
+        <Route path="/membre/:id" element={<MemberCardPage />} />
 
         <Route element={<RequireAuth />}>
           <Route path="/blog" element={<BlogPage />} />
@@ -62,6 +66,8 @@ export default function AppRouter() {
         </Route>
          {/* Routes admin */}
       <Route path="/admin" element={<AdminLayout />}>
+        <Route path="evenements" element={<AdminEvents />} />
+        <Route path="evenements/:id" element={<AdminEventDetail />} />
         <Route index element={<Navigate to="/admin/articles" replace />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="articles" element={<AdminArticles />} />

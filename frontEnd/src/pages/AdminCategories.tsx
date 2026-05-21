@@ -210,7 +210,7 @@ export default function AdminCategories() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {categories.map((cat) => (
-                  <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 font-medium text-gray-800">{cat.name}</td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 font-mono text-xs">
@@ -225,7 +225,7 @@ export default function AdminCategories() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEdit(cat)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
