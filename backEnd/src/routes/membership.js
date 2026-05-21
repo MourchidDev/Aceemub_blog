@@ -4,10 +4,11 @@ import multer from "multer";
 import path from "path";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
-import { z } from "zod";
+// import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { verifyAccessToken } from "../utils/authTokens.js";
+import membershipSchema from "../validators/membershipValidator.js";
 
 const router = Router();
 const upload = multer({
@@ -19,15 +20,15 @@ const upload = multer({
   },
 });
 
-const membershipSchema = z.object({
-  firstName: z.string().trim().min(2).max(80),
-  lastName: z.string().trim().min(2).max(80),
-  email: z.string().trim().email().toLowerCase().max(160),
-  phone: z.string().trim().min(6).max(40),
-  school: z.string().trim().min(2).max(120),
-  level: z.string().trim().min(2).max(80),
-  city: z.string().trim().min(2).max(100),
-});
+// const membershipSchema = z.object({
+//   firstName: z.string().trim().min(2).max(80),
+//   lastName: z.string().trim().min(2).max(80),
+//   email: z.string().trim().email().toLowerCase().max(160),
+//   phone: z.string().trim().min(6).max(40),
+//   school: z.string().trim().min(2).max(120),
+//   level: z.string().trim().min(2).max(80),
+//   city: z.string().trim().min(2).max(100),
+// });
 
 async function findMembershipCardForUser(user) {
   const email = user.email.toLowerCase();
