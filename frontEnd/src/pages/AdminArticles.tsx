@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FileText, LayoutList } from 'lucide-react';
-import { useArticles, useDeleteArticle, usePublishArticle, useArchiveArticle } from '../hooks/useArticles';
+import { useAdminArticles, useDeleteArticle, usePublishArticle, useArchiveArticle } from '../hooks/useArticles';
 import ArticleTable from '../components/ArticleTable';
 import { Article } from '../types';
 import Loader from '../components/Loader';
@@ -11,7 +11,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function AdminArticles() {
   const navigate = useNavigate();
-  const { data: articles = [], isLoading } = useArticles();
+  const { data: articles = [], isLoading } = useAdminArticles();
   const deleteMutation = useDeleteArticle();
   const publishMutation = usePublishArticle();
   const archiveMutation = useArchiveArticle();

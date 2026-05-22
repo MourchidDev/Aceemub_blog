@@ -1,10 +1,11 @@
 import apiClient from './client';
+import { UserRole } from '../types';
 
 export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'EDITOR' | 'MEMBER';
+  role: UserRole;
   authProvider: 'LOCAL' | 'GOOGLE';
   avatarUrl?: string | null;
   isActive: boolean;

@@ -20,6 +20,10 @@ import AdminLayout from '../layouts/AdminLayout';
 import AdminArticles from '../pages/AdminArticles';
 import ArticleFormPage from '../pages/ArticleFormPage';
 import AdminComments from '../pages/AdminComments';
+import AdminUsers from '../pages/AdminUsers';
+import AdminEvents from '../pages/AdminEvents';
+import AdminEventDetail from '../pages/AdminEventDetail';
+import { UserRole } from '../types';
 
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,8 +44,34 @@ function RequireAuth() {
   return <Outlet />;
 }
 
-import AdminEvents from '../pages/AdminEvents';
-import AdminEventDetail from '../pages/AdminEventDetail';
+function RequireRole({
+  allowedRoles,
+  fallback = '/',
+}: {
+  allowedRoles: UserRole[];
+  fallback?: string;
+}) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] bg-aemb-cream pt-28 flex items-center justify-center text-sm font-medium text-aemb-green">
+        Chargement...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/connexion" replace state={{ from: location }} />;
+  }
+
+  if (!user || !allowedRoles.includes(user.role)) {
+    return <Navigate to={fallback} replace />;
+  }
+
+  return <Outlet />;
+}
 
 export default function AppRouter() {
   return (
@@ -64,17 +94,22 @@ export default function AppRouter() {
           <Route path="/annonces" element={<Announcements />} />
           <Route path="/faq" element={<FAQ />} />
         </Route>
-         {/* Routes admin */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route path="evenements" element={<AdminEvents />} />
-        <Route path="evenements/:id" element={<AdminEventDetail />} />
-        <Route index element={<Navigate to="/admin/articles" replace />} />
-        <Route path="categories" element={<AdminCategories />} />
-        <Route path="articles" element={<AdminArticles />} />
-        <Route path="articles/new" element={<ArticleFormPage />} />
-        <Route path="articles/:id/edit" element={<ArticleFormPage />} />
-        <Route path="comments" element={<AdminComments />} />
       </Route>
+
+      <Route element={<RequireRole allowedRoles={['ADMIN', 'EDITOR']} />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/articles" replace />} />
+          <Route path="evenements" element={<AdminEvents />} />
+          <Route path="evenements/:id" element={<AdminEventDetail />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="articles" element={<AdminArticles />} />
+          <Route path="articles/new" element={<ArticleFormPage />} />
+          <Route path="articles/:id/edit" element={<ArticleFormPage />} />
+          <Route path="comments" element={<AdminComments />} />
+          <Route element={<RequireRole allowedRoles={['ADMIN']} fallback="/admin/articles" />}>
+            <Route path="users" element={<AdminUsers />} />
+          </Route>
+        </Route>
       </Route>
     </Routes>
   );

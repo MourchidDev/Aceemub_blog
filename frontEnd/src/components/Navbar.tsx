@@ -12,6 +12,7 @@ export default function Navbar() {
   const isHome = location.pathname === '/';
   const { user, isAuthenticated, logout } = useAuth();
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const canAccessAdmin = user?.role === 'ADMIN' || user?.role === 'EDITOR';
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -56,6 +57,9 @@ export default function Navbar() {
               <>
                 <Link to="/blog" className="text-sm font-medium hover:text-aemb-gold transition-colors">Blog</Link>
                 <Link to="/evenements" className="text-sm font-medium hover:text-aemb-gold transition-colors">Evenements</Link>
+                {canAccessAdmin && (
+                  <Link to="/admin" className="text-sm font-medium hover:text-aemb-gold transition-colors">Admin</Link>
+                )}
               </>
             )}
             {isAuthenticated ? (
@@ -109,6 +113,7 @@ export default function Navbar() {
                 <>
                   <Link to="/blog">Blog</Link>
                   <Link to="/evenements">Evenements</Link>
+                  {canAccessAdmin && <Link to="/admin">Admin</Link>}
                   <span className="flex items-center gap-3 text-left font-serif font-bold">
                     {userAvatar}
                     <span className="min-w-0 truncate">{user?.name}</span>
