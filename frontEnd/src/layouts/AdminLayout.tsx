@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
@@ -9,6 +9,7 @@ import {
   CalendarDays,
   MessageCircle,
   Users,
+  Undo2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,6 +24,7 @@ const navItems = [
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const visibleNavItems = navItems.filter((item) => !item.adminOnly || user?.role === 'ADMIN');
 
@@ -56,6 +58,14 @@ export default function AdminLayout() {
       </aside>
 
       <main className="flex-1 p-10 overflow-y-auto">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:text-aemb-green hover:border-aemb-green transition-colors"
+        >
+          <Undo2 size={16} />
+          Retour
+        </button>
         <Outlet />
       </main>
     </div>

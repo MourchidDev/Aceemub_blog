@@ -1,4 +1,5 @@
 import { Router } from "express";
+import bcrypt from "bcrypt";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
@@ -16,6 +17,11 @@ const updateUserSchema = z
   .refine((data) => data.role !== undefined || data.isActive !== undefined, {
     message: "Aucune modification fournie.",
   });
+
+const deleteUserSchema = z.object({
+  password: z.string().optional(),
+  confirmationEmail: z.string().email("Email de confirmation invalide.").optional(),
+});
 
 async function countActiveAdmins(excludedUserId) {
   return prisma.user.count({
@@ -77,6 +83,64 @@ router.patch("/:id", async (req, res, next) => {
     });
 
     res.json(sanitizeUser(updatedUser));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { password, confirmationEmail } = deleteUserSchema.parse(req.body);
+
+    if (id === req.user.id) {
+      return res.status(400).json({
+        message: "Vous ne pouvez pas supprimer votre propre compte.",
+      });
+    }
+
+    const admin = await prisma.user.findFirst({
+      where: { id: req.user.id, deletedAt: null, isActive: true },
+    });
+
+    if (password) {
+      const passwordIsValid = await bcrypt.compare(password, admin.password);
+      if (!passwordIsValid) {
+        return res.status(401).json({ message: "Mot de passe incorrect." });
+      }
+    } else if (admin.authProvider === "GOOGLE") {
+      if (confirmationEmail?.toLowerCase() !== admin.email.toLowerCase()) {
+        return res.status(401).json({
+          message: "Confirmez avec l'email de votre compte administrateur Google.",
+        });
+      }
+    } else {
+      return res.status(400).json({ message: "Mot de passe requis." });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id, deletedAt: null },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable." });
+    }
+
+    if (user.role === "ADMIN" && (await countActiveAdmins(id)) === 0) {
+      return res.status(400).json({
+        message: "Impossible de supprimer le dernier administrateur actif.",
+      });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+      },
+    });
+
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
