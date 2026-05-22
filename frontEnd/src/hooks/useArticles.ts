@@ -3,7 +3,10 @@ import { articlesApi } from '../api';
 import  {ArticlePayload} from '../types';
 
 export const useArticles = () =>
-  useQuery({ queryKey: ['articles'], queryFn: articlesApi.getAll });
+  useQuery({ queryKey: ['articles', 'published'], queryFn: articlesApi.getPublished });
+
+export const useAdminArticles = () =>
+  useQuery({ queryKey: ['articles', 'admin'], queryFn: articlesApi.getAll });
 
 export const useArticle = (id: string) =>
   useQuery({

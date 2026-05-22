@@ -2,8 +2,11 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import { upload } from "../lib/upload.js";
 import { uploadImage, deleteImage } from "../services/uploadService.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
+import authorize from "../middleware/authorize.js";
 
 const router = express.Router();
+const canEditContent = [requireAuth, authorize("ADMIN", "EDITOR")];
 
 const MIN_IMAGES_ON_CREATE = 5;
 
@@ -58,7 +61,7 @@ router.get("/:id", async (req, res) => {
 // ─── POST /api/events ─────────────────────────────────────────────────────────
 // Champs form-data : title, description, location, eventDate, status?, albumTitle?
 // Fichiers         : images[] (min 5)
-router.post("/", upload.array("images", 20), async (req, res) => {
+router.post("/", ...canEditContent, upload.array("images", 20), async (req, res) => {
   try {
     const { title, description, location, eventDate, status, albumTitle } = req.body;
     const files = req.files ?? [];
@@ -127,7 +130,7 @@ router.post("/", upload.array("images", 20), async (req, res) => {
 
 // ─── PUT /api/events/:id ──────────────────────────────────────────────────────
 // Met à jour les champs texte de l'événement (pas les images)
-router.put("/:id", async (req, res) => {
+router.put("/:id", ...canEditContent, async (req, res) => {
   try {
     const { title, description, location, eventDate, status } = req.body;
 
@@ -162,7 +165,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // ─── DELETE /api/events/:id ───────────────────────────────────────────────────
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", ...canEditContent, async (req, res) => {
   try {
     const event = await prisma.event.findUnique({
       where: { id: req.params.id },
@@ -189,7 +192,7 @@ router.delete("/:id", async (req, res) => {
 
 // ─── POST /api/events/:id/albums ──────────────────────────────────────────────
 // Ajouter un nouvel album à un événement existant
-router.post("/:id/albums", upload.array("images", 20), async (req, res) => {
+router.post("/:id/albums", ...canEditContent, upload.array("images", 20), async (req, res) => {
   try {
     const { albumTitle } = req.body;
     const files = req.files ?? [];
@@ -235,7 +238,7 @@ router.post("/:id/albums", upload.array("images", 20), async (req, res) => {
 
 // ─── POST /api/events/:id/albums/:albumId/images ──────────────────────────────
 // Ajouter des images à un album existant
-router.post("/:id/albums/:albumId/images", upload.array("images", 20), async (req, res) => {
+router.post("/:id/albums/:albumId/images", ...canEditContent, upload.array("images", 20), async (req, res) => {
   try {
     const files = req.files ?? [];
 
@@ -272,7 +275,7 @@ router.post("/:id/albums/:albumId/images", upload.array("images", 20), async (re
 });
 
 // ─── DELETE /api/events/:id/albums/:albumId ───────────────────────────────────
-router.delete("/:id/albums/:albumId", async (req, res) => {
+router.delete("/:id/albums/:albumId", ...canEditContent, async (req, res) => {
   try {
     const album = await prisma.album.findFirst({
       where: { id: req.params.albumId, eventId: req.params.id },
@@ -296,7 +299,7 @@ router.delete("/:id/albums/:albumId", async (req, res) => {
 
 // ─── PATCH /api/events/:id/albums/:albumId ────────────────────────────────────
 // Renommer un album
-router.patch("/:id/albums/:albumId", async (req, res) => {
+router.patch("/:id/albums/:albumId", ...canEditContent, async (req, res) => {
   try {
     const { title } = req.body;
     if (!title?.trim()) return res.status(400).json({ error: "Le titre est requis." });
@@ -319,7 +322,7 @@ router.patch("/:id/albums/:albumId", async (req, res) => {
 
 // ─── DELETE /api/events/:id/albums/:albumId/images/:mediaId ──────────────────
 // Supprimer une photo individuelle
-router.delete("/:id/albums/:albumId/images/:mediaId", async (req, res) => {
+router.delete("/:id/albums/:albumId/images/:mediaId", ...canEditContent, async (req, res) => {
   try {
     const media = await prisma.media.findFirst({
       where: { id: req.params.mediaId, albumId: req.params.albumId },

@@ -33,6 +33,20 @@ export interface Album {
 }
 
 export type ContentStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type UserRole = 'ADMIN' | 'EDITOR' | 'MEMBER';
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  authProvider: 'LOCAL' | 'GOOGLE';
+  avatarUrl?: string | null;
+  isActive: boolean;
+  emailVerifiedAt?: string | null;
+  lastLoginAt?: string | null;
+  createdAt: string;
+}
 
 
 export interface Event {

@@ -12,6 +12,7 @@ import categoriesRouter from "./routes/categories.js";
 import eventsRouter from "./routes/events.js";
 import articles from "./routes/articles.js";
 import comments from "./routes/comments.js";
+import usersRouter from "./routes/users.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,6 +84,7 @@ app.use("/api/events", eventsRouter);
 app.use("/api/articles", articles);
 app.use("/api/membership", membershipRouter);
 app.use("/api/comments", comments);
+app.use("/api/users", usersRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
