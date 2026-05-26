@@ -1,15 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  
+  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ENUMS
@@ -38,13 +35,23 @@ enum MediaType {
   PDF
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 // USER
 
 model User {
   id            String   @id @default(uuid())
   name          String
   email         String   @unique
-  password      String
+  password      String?
+  authProvider  AuthProvider @default(LOCAL)
+  googleId      String?  @unique
+  avatarUrl     String?
+  emailVerifiedAt DateTime?
+  lastLoginAt   DateTime?
   role          Role     @default(MEMBER)
   isActive      Boolean  @default(true)
 
@@ -57,6 +64,7 @@ model User {
   deletedAt     DateTime?
 
   @@index([role])
+  @@index([authProvider])
 }
 
 // ARTICLE
@@ -64,7 +72,7 @@ model User {
 model Article {
   id            String        @id @default(uuid())
   title         String
-  slug          String        @unique
+  slug          String        
   content       String
   coverImage    String?
   status        ContentStatus @default(DRAFT)
@@ -201,12 +209,23 @@ model ContactMessage {
 model MembershipCard {
   id            String   @id @default(uuid())
   memberNumber  String   @unique
-  qrCode        String
+  firstName     String
+  lastName      String
+  email         String
+  phone         String
+  school        String
+  level         String
+  city          String
+  photoDataUrl  String?
+  qrCode        String   @db.Text
   isActive      Boolean  @default(true)
 
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id])
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt     DateTime @default(now())
-  expiresAt     DateTime
+  expiresAt     DateTime?
+
+  @@index([email])
+  @@index([createdAt])
 }

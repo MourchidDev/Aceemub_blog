@@ -4,8 +4,10 @@
     "moduleResolution": "bundler",
     "target": "ES2023",
     "strict": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    // "ignoreDeprecations": "6.0",
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client"]
   }
 }
