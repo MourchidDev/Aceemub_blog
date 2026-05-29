@@ -1,20 +1,17 @@
-import React, { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { Outlet } from "react-router-dom";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import BottomTabBar from "@/components/BottomTabBar";
 
 export default function MainLayout() {
-  const { pathname } = useLocation();
-
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
-
   return (
-    <div className="min-h-screen font-sans selection:bg-aemb-gold selection:text-white">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
-      <main>
+      <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
       <Footer />
+      <BottomTabBar />
     </div>
   );
 }

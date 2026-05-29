@@ -1,65 +1,55 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
-import sharedImage from '../assets/ac.png';
+import { Link } from "react-router-dom";
+import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import logo from "@/assets/ac.png";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-white pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
-        <div>
-          <Link to="/" className="flex items-center gap-2 mb-6">
-            <img src={sharedImage} alt="Logo ACEEMUB" className="w-10 h-10 rounded-full flex items-center justify-center" />
-            <span className="font-serif text-xl font-bold">ACEEMUB Bénin</span>
-          </Link>
-          <p className="text-slate-400 text-sm leading-relaxed mb-6">
-            Organisation nationale œuvrant pour l'épanouissement des élèves et étudiants musulmans du Bénin depuis 1989.
-          </p>
-          <div className="flex gap-4">
-            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-aemb-green transition-colors"><Facebook size={18} /></a>
-            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-aemb-green transition-colors"><Twitter size={18} /></a>
-            <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-aemb-green transition-colors"><Instagram size={18} /></a>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="font-bold mb-6">L'Association</h4>
-          <ul className="flex flex-col gap-4 text-sm text-slate-400">
-            <li><Link to="/qui-sommes-nous" className="hover:text-white transition-colors">Qui sommes-nous ?</Link></li>
-            <li><Link to="/notre-vision" className="hover:text-white transition-colors">Notre Vision</Link></li>
-            <li><Link to="/association" className="hover:text-white transition-colors">Bureau National</Link></li>
-            <li><Link to="/association" className="hover:text-white transition-colors">Nos Sections</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-bold mb-6">Ressources</h4>
-          <ul className="flex flex-col gap-4 text-sm text-slate-400">
-            <li><Link to="/blog" className="hover:text-white transition-colors">Blog & Articles</Link></li>
-            <li><Link to="/annonces" className="hover:text-white transition-colors">Annonces</Link></li>
-            <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-bold mb-6">Contact</h4>
-          <ul className="flex flex-col gap-4 text-sm text-slate-400">
-            <li className="flex items-center gap-3"><Mail size={16} className="text-aemb-gold" /> contact@aceemub-benin.org</li>
-            <li className="flex items-center gap-3"><MapPin size={16} className="text-aemb-gold" /> Cotonou, Bénin</li>
-            <li><Link to="/contact" className="text-aemb-gold hover:underline">Formulaire de contact</Link></li>
-          </ul>
-          <div className="mt-8">
-            <p className="text-xs font-bold uppercase text-slate-500 mb-3">Newsletter</p>
-            <div className="flex gap-2">
-              <input type="email" placeholder="Votre email" className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm w-full focus:outline-none focus:border-aemb-green" />
-              <button className="bg-aemb-green px-4 py-2 rounded-xl"><ChevronRight size={18} /></button>
+    <footer className="mt-16 border-t border-border bg-foreground text-background">
+      <div className="mx-auto max-w-6xl px-5 py-12">
+        <div className="grid gap-8 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="ACEEMUB" className="h-12 w-12 rounded-xl bg-background/95 p-1 object-contain" />
+              <span className="font-serif text-2xl">ACEEMUB</span>
+            </div>
+            <p className="mt-3 max-w-md text-sm text-background/70">
+              Association des Élèves et Étudiants Musulmans du Bénin. Un espace
+              spirituel, académique et fraternel pour grandir, apprendre et servir.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <a href="#" aria-label="Facebook" className="grid h-9 w-9 place-items-center rounded-full border border-background/20 hover:bg-background/10">
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a href="#" aria-label="Instagram" className="grid h-9 w-9 place-items-center rounded-full border border-background/20 hover:bg-background/10">
+                <Instagram className="h-4 w-4" />
+              </a>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 text-center text-slate-500 text-xs">
-        <p>© 2026 ACEEMUB. Tous droits réservés. Conçu avec foi et excellence.</p>
+          <div>
+            <h4 className="font-serif text-lg">Navigation</h4>
+            <ul className="mt-3 space-y-2 text-sm text-background/70">
+              <li><Link to="/blog" className="hover:text-background">Blog</Link></li>
+              <li><Link to="/evenements" className="hover:text-background">Événements</Link></li>
+              <li><Link to="/annonces" className="hover:text-background">Annonces</Link></li>
+              <li><Link to="/rejoindre" className="hover:text-background">Devenir membre</Link></li>
+              <li><Link to="/faq" className="hover:text-background">FAQ</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-serif text-lg">Contact</h4>
+            <ul className="mt-3 space-y-2 text-sm text-background/70">
+              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" /> Cotonou, Bénin</li>
+              <li className="flex items-start gap-2"><Phone className="mt-0.5 h-4 w-4 flex-shrink-0" /> +229 00 00 00 00</li>
+              <li className="flex items-start gap-2"><Mail className="mt-0.5 h-4 w-4 flex-shrink-0" /> contact@aceemub.org</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-10 border-t border-background/15 pt-5 text-xs text-background/60">
+          © {new Date().getFullYear()} ACEEMUB. Tous droits réservés.
+        </div>
       </div>
     </footer>
   );

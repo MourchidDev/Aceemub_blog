@@ -1,147 +1,116 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
-import { Camera, Download, QrCode } from 'lucide-react';
-import { membershipApi } from '../api/forms';
-import { useAuth } from '../context/AuthContext';
-import { MembershipCard } from '../types';
-import appLogo from '../assets/ac.png';
-import beninLogo from '../assets/benin-logo.png';
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import { QrCode, Download } from "lucide-react";
+import { membershipApi, API_ORIGIN } from "@/api";
+import Loader from "@/components/Loader";
+import { toast } from "sonner";
 
-export default function MemberCardPage() {
-  const { id } = useParams();
-  const location = useLocation();
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const [card, setCard] = useState<MembershipCard | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!id || isAuthLoading || !isAuthenticated) return;
 
-    membershipApi
-      .get(id)
-      .then((memberCard) => {
-        setCard(memberCard);
-        setError(null);
-      })
-      .catch(() => setError('Carte membre introuvable.'))
-      .finally(() => setIsLoading(false));
-  }, [id, isAuthenticated, isAuthLoading]);
+function MemberCardPage() {
+  const { id } = useParams() as any;
+  const { data: card, isLoading } = useQuery({
+    queryKey: ["membership", id],
+    queryFn: () => membershipApi.getCard(id),
+    retry: false,
+  });
 
-  const memberSince = useMemo(() => {
-    if (!card) return '';
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date(card.createdAt));
-  }, [card]);
+  if (isLoading) return <Loader isLoading={true} />;
 
-  if (isAuthLoading) {
-    return <main className="min-h-screen bg-aemb-cream pt-32 text-center text-aemb-green">Chargement...</main>;
-  }
+  const c = card ?? {
+    id, memberNumber: "ACEEMUB -0001", firstName: "Membre", lastName: "ACEEMUB ",
+    email: "", phone: "", school: "Université d'Abomey-Calavi",
+    level: "Licence 2", city: "Cotonou", photoDataUrl: null,
+    qrCode: "", isActive: true, createdAt: new Date().toISOString(),
+  };
 
-  if (!isAuthenticated) {
-    return <Navigate to="/connexion" replace state={{ from: location }} />;
-  }
-
-  if (isLoading) {
-    return <main className="min-h-screen bg-aemb-cream pt-32 text-center text-aemb-green">Chargement...</main>;
-  }
-
-  if (error || !card) {
+  if (!card) {
     return (
-      <main className="min-h-screen bg-aemb-cream px-6 pt-32 text-center">
-        <h1 className="font-serif text-3xl font-bold text-aemb-green">Carte introuvable</h1>
-        <p className="mt-3 text-slate-600">{error}</p>
-        <Link to="/" className="mt-8 inline-flex font-bold text-aemb-green underline">
-          Retour a l'accueil
-        </Link>
-      </main>
+      <div className="mx-auto max-w-md px-5 pt-8 text-center">
+        <p className="text-muted-foreground">Carte membre introuvable</p>
+      </div>
     );
   }
 
-  const fullName = `${card.firstName} ${card.lastName}`.trim();
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await fetch(`${API_ORIGIN}/api/membership/${id}/pdf`);
+      if (!response.ok) throw new Error("Échec du téléchargement");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `carte-membre-${c.memberNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Carte téléchargée !");
+    } catch {
+      toast.error("Impossible de télécharger la carte");
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-aemb-cream px-6 py-32">
-      <section className="mx-auto max-w-3xl overflow-hidden rounded-lg border border-emerald-900/10 bg-white shadow-2xl shadow-emerald-950/10">
-        <div className="grid grid-cols-[120px_1fr_100px] items-center gap-4 bg-aemb-green px-8 py-7 text-white">
-          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-lg bg-white/95 shadow-sm">
-            <img
-              src={beninLogo}
-              alt="Logo du gouvernement beninois"
-              className="h-full w-full translate-y-9 scale-[2.15] object-contain"
-            />
+    <div className="mx-auto max-w-md px-5 pt-8">
+      <article className="overflow-hidden rounded-3xl bg-foreground text-background shadow-elevated">
+        <div className="bg-gradient-warm p-5 text-primary-foreground">
+          <div className="flex items-center justify-between">
+            <div className="text-xs uppercase tracking-widest opacity-80">ACEEMUB  · Carte de membre</div>
+            <div className="text-[10px] uppercase tracking-widest opacity-80">{c.isActive ? "Active" : "Inactive"}</div>
           </div>
-          <div className="text-center">
-            <p className="text-base font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
-            <h1 className="mt-2 font-serif text-4xl font-bold">Verification carte membre</h1>
-          </div>
-          <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-white/95 p-2 shadow-sm">
-            <img src={appLogo} alt="Logo ACEEMUB" className="h-full w-full object-contain" />
-          </div>
-        </div>
-
-        <div className="grid gap-8 p-8 sm:grid-cols-[140px_1fr_auto] sm:items-center">
-          <div className="h-36 w-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-            {card.photoDataUrl ? (
-              <img src={card.photoDataUrl} alt={fullName} className="h-full w-full object-cover" />
+          <div className="mt-5 flex items-center gap-4">
+            {c.photoDataUrl ? (
+              <img src={c.photoDataUrl} alt={c.firstName} className="h-20 w-20 rounded-2xl object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-slate-400">
-                <Camera size={36} />
+              <div className="grid h-20 w-20 place-items-center rounded-2xl bg-background/20 font-serif text-3xl">
+                {c.firstName[0]}{c.lastName[0]}
               </div>
             )}
-          </div>
-
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-aemb-gold">Matricule</p>
-            <p className="mt-1 text-sm font-extrabold uppercase tracking-[0.12em] text-aemb-green">{card.memberNumber}</p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-950">{fullName}</h2>
-            <p className="mt-3 font-medium text-slate-700">{card.school}</p>
-            <p className="text-sm text-slate-500">
-              {card.level} - {card.city}
-            </p>
-            <p className="mt-4 font-semibold text-aemb-green">Membre depuis le {memberSince}</p>
-          </div>
-
-          <div className="flex flex-col items-start gap-2 sm:items-center">
-            <img src={card.qrCode} alt="QR Code" className="h-28 w-28 rounded-md bg-white" />
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <QrCode size={14} />
-              Valide
-            </span>
+            <div>
+              <div className="font-serif text-2xl leading-tight">{c.firstName} {c.lastName}</div>
+              <div className="text-xs opacity-80">{c.memberNumber}</div>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-slate-100 p-8">
-          {downloadError && (
-            <p className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {downloadError}
-            </p>
+        <dl className="grid grid-cols-2 gap-4 p-5 text-sm">
+          <Info k="Établissement" v={c.school} />
+          <Info k="Niveau" v={c.level} />
+          <Info k="Ville" v={c.city} />
+          <Info k="Émise le" v={new Date(c.createdAt).toLocaleDateString("fr-FR")} />
+        </dl>
+
+        <div className="border-t border-background/10 p-5 text-center">
+          {c.qrCode ? (
+            <img src={c.qrCode} alt="QR Code" className="mx-auto h-28 w-28 rounded-2xl" />
+          ) : (
+            <div className="mx-auto grid h-28 w-28 place-items-center rounded-2xl bg-background text-foreground">
+              <QrCode className="h-16 w-16" />
+            </div>
           )}
-          <button
-            type="button"
-            disabled={isDownloading}
-            onClick={async () => {
-              try {
-                setIsDownloading(true);
-                setDownloadError(null);
-                await membershipApi.downloadPdf(card);
-              } catch {
-                setDownloadError("Le telechargement de la carte n'a pas pu aboutir.");
-              } finally {
-                setIsDownloading(false);
-              }
-            }}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-aemb-green px-5 py-3 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isDownloading ? 'Preparation du PDF...' : 'Telecharger le PDF'} <Download size={18} />
-          </button>
+          <p className="mt-2 text-[11px] uppercase tracking-widest opacity-70">Scanne pour vérifier</p>
         </div>
-      </section>
-    </main>
+      </article>
+
+      <button
+        onClick={handleDownloadPDF}
+        className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        <Download className="h-4 w-4" /> Télécharger la carte PDF
+      </button>
+    </div>
   );
 }
+
+function Info({ k, v }: { k: string; v: string }) {
+  return (
+    <div>
+      <dt className="text-[10px] uppercase tracking-widest opacity-60">{k}</dt>
+      <dd className="font-medium">{v}</dd>
+    </div>
+  );
+}
+
+export default MemberCardPage;

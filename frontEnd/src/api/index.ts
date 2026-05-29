@@ -1,7 +1,9 @@
-export * from './articles';
-export * from './events';
-export * from './announcements';
-export * from './forms';
-export * from './categories';
-export * from './comments';
-export { default as apiClient } from './client';
+export * from "./auth";
+export * from "./articles";
+export * from "./categories";
+export * from "./comments";
+export * from "./events";
+export * from "./announcements";
+export * from "./forms";
+export * from "./users";
+export { default as apiClient, API_ORIGIN } from "./client";

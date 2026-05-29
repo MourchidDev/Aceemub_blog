@@ -1,61 +1,48 @@
-import { Article, ArticlePayload } from '../types';
-import apiClient from './client'; 
+import apiClient, { API_ORIGIN } from "./client";
+import type { Article, ArticlePayload } from "@/types";
 
+const formatDate = (iso?: string) =>
+  iso
+    ? new Date(iso).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
 
-
-const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-
-const toDisplayArticle = (a: Article) => {
-  if (!a) return a;
-
-    let imageUrl = a.coverImage;
-  if (imageUrl && imageUrl.startsWith('/uploads/')) {
-    imageUrl = `${API_BASE_URL}${imageUrl}`;
-  } else if (!imageUrl) {
-    imageUrl = `/src/assets/ac.png`;
+const toDisplayArticle = (a: Article): Article => {
+  let imageUrl = a.coverImage ?? null;
+  if (imageUrl && imageUrl.startsWith("/uploads/")) {
+    imageUrl = `${API_ORIGIN}${imageUrl}`;
   }
-  
   return {
     ...a,
-    date: a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
     coverImage: imageUrl,
-    excerpt: a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+    date: formatDate(a.createdAt),
+    excerpt: a.content ? a.content.replace(/<[^>]+>/g, "").slice(0, 160) + "…" : "",
   };
 };
 
 export const articlesApi = {
-  getAll: async (): Promise<Article[]> => {
-    const { data } = await apiClient.get<Article[]>('/articles/all');
-    return data.filter(Boolean).map(toDisplayArticle);
-  },
-
-  getById: async (id: string): Promise<Article | undefined> => {
+  getAll: async () =>
+    (await apiClient.get<Article[]>("/articles/all")).data.filter(Boolean).map(toDisplayArticle),
+  getPublished: async () =>
+    (await apiClient.get<Article[]>("/articles")).data.filter(Boolean).map(toDisplayArticle),
+  getById: async (id: string) => {
     const { data } = await apiClient.get<Article>(`/articles/${id}`);
     return data ? toDisplayArticle(data) : undefined;
   },
-
-  create: async (payload: ArticlePayload): Promise<Article> => {
-    const { data } = await apiClient.post<Article>('/articles', payload);
-    return toDisplayArticle(data);
+  create: async (payload: ArticlePayload) =>
+    toDisplayArticle((await apiClient.post<Article>("/articles", payload)).data),
+  update: async (id: string, payload: ArticlePayload | FormData) => {
+    const cfg = payload instanceof FormData
+      ? { headers: { "Content-Type": "multipart/form-data" } }
+      : {};
+    return toDisplayArticle((await apiClient.put<Article>(`/articles/${id}`, payload, cfg)).data);
   },
-  update: async (id: string, payload: ArticlePayload | FormData): Promise<Article> => {
-    const config = payload instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
-    const { data } = await apiClient.put<Article>(`/articles/${id}`, payload, config);
-    return toDisplayArticle(data);
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/articles/${id}`);
-  },
-
-  publish: async (id: string): Promise<Article> => {
-    const { data } = await apiClient.post<Article>(`/articles/${id}/publish`);
-    return toDisplayArticle(data);
-  },
-
-  archive: async (id: string): Promise<Article> => {
-    const { data } = await apiClient.post<Article>(`/articles/${id}/archive`);
-    return toDisplayArticle(data);
-  }
-}
-
+  delete: async (id: string) => apiClient.delete(`/articles/${id}`),
+  publish: async (id: string) =>
+    toDisplayArticle((await apiClient.post<Article>(`/articles/${id}/publish`)).data),
+  archive: async (id: string) =>
+    toDisplayArticle((await apiClient.post<Article>(`/articles/${id}/archive`)).data),
+};

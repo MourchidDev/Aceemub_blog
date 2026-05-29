@@ -1,22 +1,15 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  AuthUser,
-  getCurrentUser,
-  login,
-  loginWithGoogle,
-  register,
-  LoginPayload,
-  RegisterPayload,
-} from '../api/auth';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { authApi, type LoginPayload, type RegisterPayload } from "@/api/auth";
+import type { AuthUser } from "@/types";
 
-const TOKEN_STORAGE_KEY = 'token';
+const TOKEN_KEY = "token";
 
 type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  loginWithEmail: (payload: LoginPayload) => Promise<void>;
-  registerWithEmail: (payload: RegisterPayload) => Promise<void>;
+  loginWithEmail: (p: LoginPayload) => Promise<void>;
+  registerWithEmail: (p: RegisterPayload) => Promise<void>;
   signInWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
 };
@@ -27,69 +20,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const persistSession = useCallback((nextUser: AuthUser, token: string) => {
-    // Le backend reste la source de verite. Le front garde seulement le token
-    // d'acces pour authentifier les prochains appels API.
-    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  const persist = useCallback((nextUser: AuthUser, token: string) => {
+    localStorage.setItem(TOKEN_KEY, token);
     setUser(nextUser);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
     setUser(null);
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function restoreSession() {
-      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-      if (!token) {
-        if (isMounted) setIsLoading(false);
-        return;
-      }
-
-      try {
-        const currentUser = await getCurrentUser();
-        if (isMounted) setUser(currentUser);
-      } catch {
-        // Token expire, supprime ou falsifie: on nettoie localement pour eviter
-        // une boucle de requetes 401 difficile a debugger.
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        if (isMounted) setUser(null);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
-
-    restoreSession();
+    let mounted = true;
+    authApi
+      .me()
+      .then((u) => mounted && setUser(u))
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        if (mounted) setUser(null);
+      })
+      .finally(() => mounted && setIsLoading(false));
     return () => {
-      isMounted = false;
+      mounted = false;
     };
   }, []);
 
   const loginWithEmail = useCallback(
-    async (payload: LoginPayload) => {
-      const result = await login(payload);
-      persistSession(result.user, result.token);
+    async (p: LoginPayload) => {
+      const r = await authApi.login(p);
+      persist(r.user, r.token);
     },
-    [persistSession],
+    [persist],
   );
-
   const registerWithEmail = useCallback(
-    async (payload: RegisterPayload) => {
-      const result = await register(payload);
-      persistSession(result.user, result.token);
+    async (p: RegisterPayload) => {
+      const r = await authApi.register(p);
+      persist(r.user, r.token);
     },
-    [persistSession],
+    [persist],
   );
-
   const signInWithGoogle = useCallback(
     async (idToken: string) => {
-      const result = await loginWithGoogle(idToken);
-      persistSession(result.user, result.token);
+      const r = await authApi.loginWithGoogle(idToken);
+      persist(r.user, r.token);
     },
-    [persistSession],
+    [persist],
   );
 
   const value = useMemo(
@@ -102,16 +82,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithGoogle,
       logout,
     }),
-    [isLoading, loginWithEmail, logout, registerWithEmail, signInWithGoogle, user],
+    [user, isLoading, loginWithEmail, registerWithEmail, signInWithGoogle, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth doit etre utilise dans AuthProvider.');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth doit être utilisé dans AuthProvider");
+  return ctx;
 }

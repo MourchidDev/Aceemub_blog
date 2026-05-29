@@ -1,276 +1,378 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AxiosError } from 'axios';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import authHeroImage from '../assets/auth-hero.jpg';
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+import logo from "@/assets/logo-aceemub.png";
+import hero from "@/assets/hero-student.jpg";
+import { ArrowLeft, ArrowRight, Eye, EyeOff } from "lucide-react";
+import Loader from "@/components/Loader";
+
+export default function AuthPage() {
+  return <AuthScreen mode="login" />;
+}
+
+
+const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? "";
 
 declare global {
   interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (options: {
-            client_id: string;
-            callback: (response: { credential?: string }) => void;
-          }) => void;
-          renderButton: (
-            element: HTMLElement,
-            options: { theme: 'outline'; size: 'large'; width: number; text: 'signin_with' | 'signup_with' },
-          ) => void;
-        };
-      };
-    };
+    google?: any;
   }
 }
 
-type AuthMode = 'login' | 'register';
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof AxiosError) {
-    const apiMessage = error.response?.data?.message;
-    if (typeof apiMessage === 'string') return apiMessage;
-  }
-  return "Une erreur est survenue. Verifiez vos informations puis reessayez.";
-}
-
-export default function AuthPage({ mode }: { mode: AuthMode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { loginWithEmail, registerWithEmail, signInWithGoogle, isAuthenticated } = useAuth();
-  const googleButtonRef = useRef<HTMLDivElement | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const isRegister = mode === 'register';
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  const title = useMemo(() => (isRegister ? 'Creer un compte' : 'Connexion'), [isRegister]);
-  const redirectTo =
-    typeof location.state === 'object' &&
-    location.state &&
-    'from' in location.state &&
-    typeof location.state.from === 'object' &&
-    location.state.from &&
-    'pathname' in location.state.from &&
-    typeof location.state.from.pathname === 'string'
-      ? `${location.state.from.pathname}${'search' in location.state.from && typeof location.state.from.search === 'string' ? location.state.from.search : ''}`
-      : '/';
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    // Debug OAuth: le client id n'est pas un secret. Cette trace permet de
-    // verifier que Vite n'utilise pas encore une ancienne valeur du fichier .env.
-    console.info('[ACEEMUB Auth] Google client id:', googleClientId);
-    console.info('[ACEEMUB Auth] Browser origin:', window.location.origin);
-  }, [googleClientId]);
-
-  useEffect(() => {
-    if (isAuthenticated) navigate(redirectTo, { replace: true });
-  }, [isAuthenticated, navigate, redirectTo]);
-
-  useEffect(() => {
-    if (!googleClientId || !googleButtonRef.current) return;
-
-    const scriptId = 'google-identity-services';
-    const renderGoogleButton = () => {
-      if (!window.google || !googleButtonRef.current) return;
-
-      googleButtonRef.current.innerHTML = '';
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: async (response) => {
-          if (!response.credential) {
-            setError('Google n a pas renvoye de jeton valide.');
-            return;
-          }
-
-          try {
-            setIsSubmitting(true);
-            setError(null);
-            await signInWithGoogle(response.credential);
-            navigate(redirectTo, { replace: true });
-          } catch (caughtError) {
-            setError(getErrorMessage(caughtError));
-          } finally {
-            setIsSubmitting(false);
-          }
-        },
-      });
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: 320,
-        text: isRegister ? 'signup_with' : 'signin_with',
-      });
-    };
-
-    const existingScript = document.getElementById(scriptId);
-    if (existingScript) {
-      renderGoogleButton();
+function loadGsi(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject(new Error("ssr"));
+    if (window.google?.accounts?.id) return resolve();
+    const existing = document.querySelector<HTMLScriptElement>('script[data-gsi="1"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
       return;
     }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true;
+    s.defer = true;
+    s.dataset.gsi = "1";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("gsi-load"));
+    document.head.appendChild(s);
+  });
+}
 
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = renderGoogleButton;
-    document.head.appendChild(script);
-  }, [googleClientId, isRegister, navigate, redirectTo, signInWithGoogle]);
+export function AuthScreen({ mode }: { mode: "login" | "register" }) {
+  const nav = useNavigate();
+  const { loginWithEmail, registerWithEmail, signInWithGoogle } = useAuth();
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+  const isLogin = mode === "login";
 
-    try {
-      if (isRegister) {
-        await registerWithEmail({ name, email, password });
-      } else {
-        await loginWithEmail({ email, password });
-      }
-      navigate(redirectTo, { replace: true });
-    } catch (caughtError) {
-      setError(getErrorMessage(caughtError));
-    } finally {
-      setIsSubmitting(false);
+  // Render the official Google button when client id is set
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !googleBtnRef.current) return;
+    let cancelled = false;
+    loadGsi()
+      .then(() => {
+        if (cancelled || !googleBtnRef.current || !window.google) return;
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (resp: { credential: string }) => {
+            try {
+              await signInWithGoogle(resp.credential);
+              toast.success("Bienvenue !");
+              nav("/");
+            } catch {
+              toast.error("Connexion Google impossible.");
+            }
+          },
+        });
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: isLogin ? "signin_with" : "signup_with",
+          width: 320,
+        });
+      })
+      .catch(() => {
+        /* silencieux — fallback bouton visuel */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [signInWithGoogle, nav, isLogin]);
+
+  const handleGoogleFallback = async () => {
+    if (!GOOGLE_CLIENT_ID) {
+      toast.error("Connexion Google non configurée (VITE_GOOGLE_CLIENT_ID manquant).");
+      return;
     }
-  }
+    try {
+      await loadGsi();
+      window.google?.accounts.id.prompt();
+    } catch {
+      toast.error("Impossible de charger Google.");
+    }
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (isLogin) await loginWithEmail({ email: form.email, password: form.password });
+      else await registerWithEmail(form);
+      toast.success(isLogin ? "Bienvenue !" : "Compte créé.");
+      nav("/");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "Identifiants invalides ou erreur réseau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <Loader isLoading={true} />;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-aemb-cream pt-20">
-      <section className="auth-shell grid w-full overflow-hidden bg-white shadow-2xl shadow-emerald-950/10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="auth-visual relative min-h-[280px] overflow-hidden lg:min-h-full">
+    <div className="min-h-[calc(100dvh-3.5rem)] bg-muted/30 px-3 py-4 md:px-8 md:py-10">
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-border bg-card shadow-card md:grid-cols-2">
+        {/* LEFT visual panel */}
+        <aside className="relative hidden min-h-[560px] overflow-hidden md:block">
           <img
-            src={authHeroImage}
-            alt="Mere et enfant lisant ensemble"
-            className="h-full w-full object-cover"
+            src={hero}
+            alt="Étudiants musulmans du Bénin"
+            className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/65 via-emerald-950/10 to-transparent lg:bg-gradient-to-r" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white sm:p-8 lg:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">ACEEMUB Benin</p>
-            <h1 className="mt-3 max-w-md font-serif text-3xl font-bold sm:text-4xl">
-              Grandir dans la foi, le savoir et la fraternite.
-            </h1>
-          </div>
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/40 to-foreground/70" />
+          <div className="absolute inset-0 pattern-chevrons opacity-15" />
 
-        <div className="auth-form-panel flex items-center justify-center px-5 py-8 sm:px-8 lg:px-12 xl:px-20">
-          <div className="w-full max-w-md">
-            <div className="mb-8">
-              <h2 className="mt-2 font-serif text-3xl font-bold text-aemb-green sm:text-4xl">{title}</h2>
-              <p className="mt-3 text-sm leading-6 text-gray-500">
-                {isRegister
-                  ? 'Creez votre compte pour rejoindre la communaute.'
-                  : 'Heureux de vous revoir. Connectez-vous pour continuer.'}
+          <div className="relative flex h-full flex-col justify-between p-8 text-primary-foreground">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+                Espace membre
+              </span>
+              <div className="inline-flex gap-2 rounded-full bg-background/15 p-1 text-xs backdrop-blur">
+                <Link
+                  to="/connexion"
+                  className={`rounded-full px-4 py-1.5 transition ${
+                    isLogin ? "bg-background text-foreground" : "text-primary-foreground/90"
+                  }`}
+                >
+                  Connexion
+                </Link>
+                <Link
+                  to="/inscription"
+                  className={`rounded-full px-4 py-1.5 transition ${
+                    !isLogin ? "bg-background text-foreground" : "text-primary-foreground/90"
+                  }`}
+                >
+                  Inscription
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="font-serif text-4xl leading-tight lg:text-5xl">
+                {isLogin
+                  ? "Reprends ta lecture, retrouve ta communauté."
+                  : "Rejoins une génération savante, engagée et utile."}
+              </h2>
+              <p className="mt-3 max-w-md text-sm text-primary-foreground/85">
+                Articles, événements, annonces et carte de membre — tout l'univers
+                ACEEMUB dans un espace dédié.
               </p>
             </div>
 
-            {error && (
-              <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-background/15 backdrop-blur">
+                  <img src={logo} alt="" className="h-7 w-7 object-contain" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">ACEEMUB</p>
+                  <p className="text-xs text-primary-foreground/80">
+                    Élèves &amp; étudiants musulmans du Bénin
+                  </p>
+                </div>
               </div>
-            )}
+              <Link
+                to="/"
+                aria-label="Retour"
+                className="grid h-10 w-10 place-items-center rounded-full bg-background/15 backdrop-blur transition hover:bg-background/25"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </aside>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isRegister && (
-                <label className="block">
-                  <span className="text-sm font-medium text-gray-700">Nom complet</span>
-                  <span className="mt-1 flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2.5 transition focus-within:border-aemb-green focus-within:shadow-sm">
-                    <UserRound size={18} className="text-gray-400" />
-                    <input
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      className="w-full outline-none"
-                      minLength={2}
-                      maxLength={80}
-                      required
-                      autoComplete="name"
-                    />
-                  </span>
-                </label>
+        {/* RIGHT form panel */}
+        <section className="flex flex-col px-5 py-8 sm:px-10 sm:py-12">
+          <header className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <img src={logo} alt="ACEEMUB" className="h-9 w-9 object-contain" />
+              <span className="font-serif text-lg">ACEEMUB</span>
+            </Link>
+            <span className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+              FR
+            </span>
+          </header>
+
+          <div className="mx-auto mt-10 w-full max-w-sm flex-1">
+            <h1 className="font-serif text-4xl tracking-tight sm:text-5xl">
+              {isLogin ? "Bon retour" : "Bienvenue"}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {isLogin
+                ? "Connecte-toi à ton espace ACEEMUB."
+                : "Crée ton compte en une minute."}
+            </p>
+
+            <form onSubmit={submit} className="mt-8 space-y-4">
+              {!isLogin && (
+                <Field
+                  label="Nom complet"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
+                  required
+                  placeholder="Ex. Aïssatou Diallo"
+                />
               )}
-
-              <label className="block">
-                <span className="text-sm font-medium text-gray-700">Email</span>
-                <span className="mt-1 flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2.5 transition focus-within:border-aemb-green focus-within:shadow-sm">
-                  <Mail size={18} className="text-gray-400" />
+              <Field
+                label="Email"
+                type="email"
+                value={form.email}
+                onChange={(v) => setForm({ ...form, email: v })}
+                required
+                placeholder="prenom@exemple.com"
+              />
+              <div>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Mot de passe
+                </label>
+                <div className="relative mt-1">
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className="w-full outline-none"
+                    type={showPwd ? "text" : "password"}
+                    value={form.password}
                     required
-                    autoComplete="email"
-                  />
-                </span>
-              </label>
-
-              <label className="block">
-                <span className="text-sm font-medium text-gray-700">Mot de passe</span>
-                <span className="mt-1 flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2.5 transition focus-within:border-aemb-green focus-within:shadow-sm">
-                  <Lock size={18} className="text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    className="w-full outline-none"
-                    minLength={isRegister ? 12 : 1}
-                    required
-                    autoComplete={isRegister ? 'new-password' : 'current-password'}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="h-12 w-full rounded-xl border border-border bg-background px-4 pr-12 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((value) => !value)}
-                    className="text-gray-400 transition hover:text-aemb-green"
-                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    onClick={() => setShowPwd((v) => !v)}
+                    aria-label={showPwd ? "Masquer" : "Afficher"}
+                    className="absolute inset-y-0 right-3 my-auto grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-muted"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
-                </span>
-              </label>
+                </div>
+                {isLogin && (
+                  <div className="mt-2 text-right">
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toast.info("Contacte l'équipe pour réinitialiser ton mot de passe.");
+                      }}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Mot de passe oublié ?
+                    </a>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full rounded-md bg-aemb-green px-4 py-3 font-semibold text-white transition duration-300 hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={loading}
+                className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
               >
-                {isSubmitting ? 'Traitement...' : title}
+                {loading ? "…" : isLogin ? "Se connecter" : "Créer mon compte"}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </form>
 
-            <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400">
-              <span className="h-px flex-1 bg-gray-200" />
+            {/* Divider */}
+            <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
               ou
-              <span className="h-px flex-1 bg-gray-200" />
+              <span className="h-px flex-1 bg-border" />
             </div>
 
-            {googleClientId ? (
-              <div className="flex justify-center" ref={googleButtonRef} />
-            ) : (
-              <p className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Configurez VITE_GOOGLE_CLIENT_ID pour activer Google.
-              </p>
-            )}
+            {/* Google */}
+            <div className="flex flex-col items-center gap-3">
+              <div ref={googleBtnRef} className="min-h-[40px]" />
+              {!GOOGLE_CLIENT_ID && (
+                <button
+                  type="button"
+                  onClick={handleGoogleFallback}
+                  className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border bg-background text-sm font-medium hover:bg-muted"
+                >
+                  <GoogleIcon />
+                  Continuer avec Google
+                </button>
+              )}
+            </div>
 
-            <p className="mt-8 text-center text-sm text-gray-600">
-              {isRegister ? 'Deja inscrit ?' : 'Pas encore de compte ?'}{' '}
-              <Link
-                to={isRegister ? '/connexion' : '/inscription'}
-                className="font-semibold text-aemb-green transition hover:text-aemb-gold"
-              >
-                {isRegister ? 'Se connecter' : 'Creer un compte'}
-              </Link>
+            <p className="mt-8 text-center text-sm text-muted-foreground">
+              {isLogin ? (
+                <>
+                  Pas encore de compte ?{" "}
+                  <Link to="/inscription" className="font-semibold text-primary hover:underline">
+                    Créer un compte
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Déjà membre ?{" "}
+                  <Link to="/connexion" className="font-semibold text-primary hover:underline">
+                    Se connecter
+                  </Link>
+                </>
+              )}
             </p>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  required,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  required?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        required={required}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 h-12 w-full rounded-xl border border-border bg-background px-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+      />
+    </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden>
+      <path
+        fill="#FFC107"
+        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.4 0-11.5-5.1-11.5-11.5S17.6 12.5 24 12.5c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.3 29 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5 43.5 34.8 43.5 24c0-1.2-.1-2.4-.4-3.5z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c2.9 0 5.6 1.1 7.6 2.9l5.7-5.7C33.6 6.8 29 5 24 5 16.3 5 9.7 9.3 6.3 14.7z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 43c5 0 9.5-1.9 12.9-5l-6-4.9c-2 1.4-4.4 2.2-6.9 2.2-5.3 0-9.7-3.1-11.3-7.4l-6.5 5C9.5 38.7 16.2 43 24 43z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6 4.9c-.4.4 6.5-4.7 6.5-14.6 0-1.2-.1-2.4-.4-3.5z"
+      />
+    </svg>
   );
 }

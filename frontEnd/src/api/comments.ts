@@ -1,37 +1,15 @@
-import { Comment } from '../types';
-import apiClient from './client';
+import apiClient from "./client";
+import type { Comment } from "@/types";
 
 export const commentsApi = {
-  getByArticle: async (articleId: string): Promise<Comment[]> => {
-    const { data } = await apiClient.get<Comment[]>(`/comments/article/${articleId}`);
-    return data;
-  },
-
-  getAll: async (): Promise<Comment[]> => {
-    const { data } = await apiClient.get<Comment[]>('/comments');
-    return data;
-  },
-
-  create: async (payload: { content: string; articleId: string }): Promise<Comment> => {
-    const { data } = await apiClient.post<Comment>('/comments/comment', payload);
-    return data;
-  },
-
-  update: async(playload: { id: string, content: string; articleId: string}): Promise<Comment> => {
-    const { data } = await apiClient.put<Comment>(`/comments/${playload.id}`, playload);
-    return data;
-  },
-  approve: async (id: string): Promise<Comment> => {
-    const { data } = await apiClient.put<Comment>(`/comments/approve/${id}`);
-    return data;
-  },
-
-  reject: async (id: string): Promise<Comment> => {
-    const { data } = await apiClient.put<Comment>(`/comments/reject/${id}`);
-    return data;
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/comments/${id}`);
-  },
+  getByArticle: async (articleId: string) =>
+    (await apiClient.get<Comment[]>(`/comments/article/${articleId}`)).data,
+  getAll: async () => (await apiClient.get<Comment[]>("/comments")).data,
+  create: async (p: { content: string; articleId: string }) =>
+    (await apiClient.post<Comment>("/comments/comment", p)).data,
+  update: async (p: { id: string; content: string; articleId: string }) =>
+    (await apiClient.put<Comment>(`/comments/${p.id}`, { content: p.content })).data,
+  approve: async (id: string) => (await apiClient.put<Comment>(`/comments/approve/${id}`)).data,
+  reject: async (id: string) => (await apiClient.put<Comment>(`/comments/reject/${id}`)).data,
+  delete: async (id: string) => apiClient.delete(`/comments/${id}`),
 };

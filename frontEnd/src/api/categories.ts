@@ -1,28 +1,11 @@
-import apiClient from './client';
-import { Category } from '../types';
+import apiClient from "./client";
+import type { Category } from "@/types";
 
 export const categoriesApi = {
-  getAll: async (): Promise<Category[]> => {
-    const { data } = await apiClient.get('/categories');
-    return data;
-  },
-
-  getById: async (id: string): Promise<Category> => {
-    const { data } = await apiClient.get(`/categories/${id}`);
-    return data;
-  },
-
-  create: async (category: Omit<Category, 'id' | 'createdAt'>): Promise<Category> => {
-    const { data } = await apiClient.post('/categories', category);
-    return data;
-  },
-
-  update: async (id: string, category: Partial<Category>): Promise<Category> => {
-    const { data } = await apiClient.put(`/categories/${id}`, category);
-    return data;
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/categories/${id}`);
-  },
+  getAll: async () => (await apiClient.get<Category[]>("/categories")).data,
+  create: async (c: Omit<Category, "id" | "createdAt">) =>
+    (await apiClient.post<Category>("/categories", c)).data,
+  update: async (id: string, c: Partial<Category>) =>
+    (await apiClient.put<Category>(`/categories/${id}`, c)).data,
+  delete: async (id: string) => apiClient.delete(`/categories/${id}`),
 };
