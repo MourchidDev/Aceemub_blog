@@ -37,7 +37,7 @@ function ArticleDetailPage() {
 
   if (!article) {
     return (
-      <div className="mx-auto max-w-xl px-5 pt-16 text-center">
+      <div className="mx-auto max-w-2xl px-5 pt-16 text-center">
         <h1 className="font-serif text-3xl">Article introuvable</h1>
         <p className="mt-2 text-sm text-muted-foreground">Il a peut-être été retiré ou archivé.</p>
         <Link to="/blog" className="mt-6 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm text-primary-foreground">
@@ -63,7 +63,7 @@ function ArticleDetailPage() {
   };
 
   return (
-    <article className="mx-auto max-w-3xl">
+    <article className="mx-auto max-w-2xl">
       <div className="px-5 pt-4">
         <Link
           to="/blog"
@@ -168,7 +168,7 @@ function ArticleDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-2xl bg-sand p-4 text-sm">
+            <div className="mt-4 rounded-2xl bg-primary/10 p-4 text-sm">
               <Link to="/connexion" className="font-medium text-primary hover:underline">
                 Connecte-toi
               </Link>{" "}

@@ -57,19 +57,19 @@ export default function CommentSection({ articleId }: Props) {
   };
 
   return (
-    <div className="mt-16 pt-8 border-t border-slate-100">
+    <div className="mt-16 pt-8 border-t border-border">
       <h3 className="text-2xl font-bold mb-8 flex items-center gap-2">
-        <MessageCircle size={24} className="text-aemb-green" />
+        <MessageCircle size={24} className="text-primary" />
         Commentaires ({approvedComments.length})
       </h3>
 
       {isAuthenticated ? (
-        <form onSubmit={handleSubmit} className="mb-12 bg-slate-50 p-6 rounded-2xl">
+        <form onSubmit={handleSubmit} className="mb-12 bg-muted p-6 rounded-2xl">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Partagez votre réflexion..."
-            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-aemb-green resize-none"
+            className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary resize-none"
             rows={4}
             required
           />
@@ -77,7 +77,7 @@ export default function CommentSection({ articleId }: Props) {
             <button
               type="submit"
               disabled={createMutation.isPending}
-              className="flex items-center gap-2 bg-aemb-green text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-800 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 disabled:opacity-50 transition-colors"
             >
               <Send size={16} />
               {createMutation.isPending ? 'Envoi...' : 'Publier'}
@@ -86,35 +86,35 @@ export default function CommentSection({ articleId }: Props) {
         </form>
       ) : (
         <div className="mb-12 p-6 bg-amber-50 border border-amber-100 rounded-2xl text-center">
-          <p className="text-slate-600">Connectez-vous pour laisser un commentaire</p>
+          <p className="text-muted-foreground">Connectez-vous pour laisser un commentaire</p>
         </div>
       )}
 
       <div className="space-y-6">
         {isLoading ? (
-          <p className="text-slate-400 text-center py-8">Chargement...</p>
+          <p className="text-muted-foreground text-center py-8">Chargement...</p>
         ) : approvedComments.length === 0 ? (
-          <p className="text-slate-400 text-center py-8">Aucun commentaire pour le moment</p>
+          <p className="text-muted-foreground text-center py-8">Aucun commentaire pour le moment</p>
         ) : (
           approvedComments.map((comment) => (
-            <div key={comment.id} className="bg-white p-6 rounded-2xl border border-slate-100">
+            <div key={comment.id} className="bg-card p-6 rounded-2xl border border-border">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User size={20} className="text-slate-500" />
+                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                  <User size={20} className="text-muted-foreground" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-foreground">
                       {comment.user?.name || 'Anonyme'}
                     </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock size={12} />
                       {new Date(comment.createdAt).toLocaleDateString('fr-FR')}
                     </span>
                     {user?.id === comment.user?.id && (
                       <button
                         onClick={() => handleEdit(comment.id, comment.content)}
-                        className="ml-auto text-slate-400 hover:text-aemb-green transition-colors"
+                        className="ml-auto text-muted-foreground hover:text-primary transition-colors"
                         title="Modifier"
                       >
                         <Edit2 size={16} />
@@ -127,27 +127,27 @@ export default function CommentSection({ articleId }: Props) {
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-aemb-green resize-none"
+                        className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary resize-none"
                         rows={3}
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleUpdateSubmit(comment.id)}
                           disabled={updateMutation.isPending}
-                          className="px-4 py-2 bg-aemb-green text-white rounded-lg text-sm font-bold hover:bg-emerald-800 disabled:opacity-50 transition-colors"
+                          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-colors"
                         >
                           {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors"
+                          className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-bold hover:bg-muted transition-colors"
                         >
                           Annuler
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-slate-600 leading-relaxed">{comment.content}</p>
+                    <p className="text-muted-foreground leading-relaxed">{comment.content}</p>
                   )}
                 </div>
               </div>

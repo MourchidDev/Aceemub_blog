@@ -1,17 +1,28 @@
-import apiClient from "./client";
-import type { AuthUser } from "@/types";
+import apiClient from './client';
+import { UserAccount, UserRole } from '../types';
 
-export type UpdateUserPayload = { name?: string; email?: string; role?: AuthUser["role"]; isActive?: boolean };
-export type DeleteUserPayload = { reason?: string };
+export type UpdateUserPayload = {
+  role?: UserRole;
+  isActive?: boolean;
+};
+
+export type DeleteUserPayload = {
+  password?: string;
+  confirmationEmail?: string;
+};
 
 export const usersApi = {
-  getAll: async () => (await apiClient.get<AuthUser[]>("/users")).data,
-  updateRole: async (id: string, role: AuthUser["role"]) =>
-    (await apiClient.put<AuthUser>(`/users/${id}/role`, { role })).data,
-  toggleActive: async (id: string, isActive: boolean) =>
-    (await apiClient.put<AuthUser>(`/users/${id}/active`, { isActive })).data,
-  update: async (id: string, payload: UpdateUserPayload) =>
-    (await apiClient.put<AuthUser>(`/users/${id}`, payload)).data,
-  delete: async (id: string, payload?: DeleteUserPayload) =>
-    apiClient.delete(`/users/${id}`, { data: payload }),
+  getAll: async (): Promise<UserAccount[]> => {
+    const { data } = await apiClient.get<UserAccount[]>('/users');
+    return data;
+  },
+
+  update: async (id: string, payload: UpdateUserPayload): Promise<UserAccount> => {
+    const { data } = await apiClient.patch<UserAccount>(`/users/${id}`, payload);
+    return data;
+  },
+
+  delete: async (id: string, payload: DeleteUserPayload): Promise<void> => {
+    await apiClient.delete(`/users/${id}`, { data: payload });
+  },
 };

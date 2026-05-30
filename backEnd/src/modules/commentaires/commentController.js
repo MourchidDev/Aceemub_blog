@@ -1,4 +1,3 @@
-import { get } from "node:http";
 import {
     createComment,
     getCommentsByArticleId,
@@ -7,6 +6,7 @@ import {
     updateComment,
     deleteComment
 } from "./commentService.js";
+import prisma from "../../lib/prisma.js";
 
 
 // endPoint pour ajouter un commentaire
@@ -54,7 +54,7 @@ export const approveCommentController = async (req, res, next) => {
         const {id} = req.params;
         const comment = await updateCommentStatus(id, 'APPROVED');
         res.json(comment);
-    } catch(errro) {
+    } catch(error) {
         next(error);
     }
 }
@@ -74,6 +74,17 @@ export const rejectCommentController = async (req, res, next) => {
 export const updateCommentController = async (req, res, next) => {
     try {
         const {id} = req.params;
+        const existingComment = await prisma.comment.findUnique({ where: { id } });
+
+        if (!existingComment) {
+            return res.status(404).json({ message: "Commentaire introuvable." });
+        }
+
+        const canManageContent = ["ADMIN", "EDITOR"].includes(req.user?.role);
+        if (!canManageContent && existingComment.userId !== req.user?.id) {
+            return res.status(403).json({ message: "Acces refuse." });
+        }
+
         const updateData = req.body;
         const comment = await updateComment(id, updateData);
         res.json(comment);

@@ -1,123 +1,402 @@
-import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { Shield, Trash2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { usersApi } from "@/api";
-import { toast } from "sonner";
-import ConfirmDialog from "@/components/ConfirmDialog";
-import { useConfirm } from "@/hooks/useConfirm";
+import React, { useMemo, useState } from 'react';
+import {
+  ShieldCheck,
+  UserCog,
+  Users,
+  CircleSlash2,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  KeyRound,
+  UserCircle,
+} from 'lucide-react';
+import Loader from '../components/Loader';
+import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../components/NotificationContainer';
+import { useDeleteUser, useUpdateUser, useUsers } from '../hooks/useUsers';
+import { UserAccount, UserRole } from '../types';
+import { DeleteUserPayload } from '../api/users';
 
+const PAGE_SIZE = 8;
 
+const roles: Array<{ value: UserRole; label: string }> = [
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'EDITOR', label: 'Editeur' },
+  { value: 'MEMBER', label: 'Membre' },
+];
 
-function AdminUsersPage() {
-  const { user } = useAuth();
-  const nav = useNavigate();
-  useEffect(() => {
-    if (user && user.role !== "ADMIN") nav("/admin/articles");
-  }, [user, nav]);
+const roleStyles: Record<UserRole, string> = {
+  ADMIN: 'bg-emerald-100 text-emerald-700',
+  EDITOR: 'bg-blue-100 text-secondary',
+  MEMBER: 'bg-muted text-muted-foreground',
+};
 
-  const qc = useQueryClient();
-  const { data: list = [] } = useQuery({
-    queryKey: ["admin", "users"],
-    queryFn: () => usersApi.getAll().catch(() => []),
-    initialData: [],
+function formatDate(value?: string | null) {
+  if (!value) return 'Jamais';
+  return new Date(value).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
-  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
+}
 
-  const inv = () => qc.invalidateQueries({ queryKey: ["admin", "users"] });
-  const role = useMutation({
-    mutationFn: ({ id, r }: { id: string; r: "ADMIN" | "EDITOR" | "MEMBER" }) => usersApi.updateRole(id, r),
-    onSuccess: () => { toast.success("Rôle modifié"); inv(); },
-  });
-  const tog = useMutation({
-    mutationFn: ({ id, v }: { id: string; v: boolean }) => usersApi.toggleActive(id, v),
-    onSuccess: () => { toast.success("Mis à jour"); inv(); },
-  });
-  const del = useMutation({
-    mutationFn: (id: string) => usersApi.delete(id),
-    onSuccess: () => { toast.success("Supprimé"); inv(); },
-  });
+function UserAvatar({ user }: { user: UserAccount }) {
+  const [failed, setFailed] = useState(false);
 
-  const handleDelete = async (id: string, name: string) => {
-    const confirmed = await confirm({
-      title: "Supprimer l'utilisateur",
-      message: `Êtes-vous sûr de vouloir supprimer <strong>${name}</strong> ?`,
-      confirmText: "Supprimer",
-      confirmColor: "danger",
-    });
-    if (confirmed) del.mutate(id);
+  if (user.avatarUrl && !failed) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt=""
+        className="h-11 w-11 rounded-full object-cover border border-border"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <div className="h-11 w-11 rounded-full bg-muted text-muted-foreground flex items-center justify-center border border-border">
+      <UserCircle size={25} />
+    </div>
+  );
+}
+
+function DeleteUserModal({
+  user,
+  currentUser,
+  isPending,
+  onClose,
+  onConfirm,
+}: {
+  user: UserAccount;
+  currentUser: UserAccount;
+  isPending: boolean;
+  onClose: () => void;
+  onConfirm: (payload: DeleteUserPayload) => void;
+}) {
+  const needsEmailConfirmation = currentUser.authProvider === 'GOOGLE';
+  const [confirmationValue, setConfirmationValue] = useState('');
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!confirmationValue.trim()) return;
+    onConfirm(
+      needsEmailConfirmation
+        ? { confirmationEmail: confirmationValue.trim() }
+        : { password: confirmationValue },
+    );
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <h1 className="font-serif text-3xl flex items-center gap-2"><Shield className="h-6 w-6" /> Utilisateurs</h1>
-      <p className="text-sm text-muted-foreground">Gestion des comptes et des rôles (Admin uniquement).</p>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <form onSubmit={handleSubmit} className="relative w-full max-w-md bg-card rounded-xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+              <Trash2 size={18} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Supprimer l'utilisateur</h2>
+              <p className="text-xs text-muted-foreground">
+                {needsEmailConfirmation ? 'Confirmation par email requise' : 'Confirmation par mot de passe requise'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Nom</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Rôle</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((u) => (
-                <tr key={u.id} className="border-t border-border">
-                  <td className="px-4 py-3 font-medium">{u.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={u.role}
-                      onChange={(e) => role.mutate({ id: u.id, r: e.target.value as any })}
-                      className="h-8 rounded-full border border-border bg-background px-2 text-xs"
-                    >
-                      <option value="MEMBER">Membre</option>
-                      <option value="EDITOR">Éditeur</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => tog.mutate({ id: u.id, v: !u.isActive })}
-                      className={`rounded-full px-3 py-0.5 text-xs ${u.isActive ? "bg-secondary/30 text-accent" : "bg-muted text-muted-foreground"}`}
-                    >
-                      {u.isActive ? "Actif" : "Désactivé"}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(u.id, u.name)}
-                      className="grid h-8 w-8 place-items-center rounded-full text-destructive hover:bg-destructive/10 ml-auto"
-                    ><Trash2 className="h-4 w-4" /></button>
-                  </td>
-                </tr>
-              ))}
-              {list.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">Aucun utilisateur.</td></tr>
-              )}
-            </tbody>
-          </table>
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Vous allez supprimer <span className="font-bold text-foreground">{user.name}</span>. Cette action retirera
+            son acces et masquera son compte de la liste des utilisateurs.
+          </p>
+
+          <label className="block">
+            <span className="block text-sm font-semibold text-foreground mb-2">
+              {needsEmailConfirmation ? 'Votre email administrateur Google' : 'Votre mot de passe administrateur'}
+            </span>
+            <div className="relative">
+              <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type={needsEmailConfirmation ? 'email' : 'password'}
+                value={confirmationValue}
+                onChange={(event) => setConfirmationValue(event.target.value)}
+                placeholder={needsEmailConfirmation ? currentUser.email : undefined}
+                className="w-full rounded-lg border border-border pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                autoFocus
+              />
+            </div>
+          </label>
+        </div>
+
+        <div className="flex gap-3 px-6 pb-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={isPending || !confirmationValue.trim()}
+            className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isPending ? 'Suppression...' : 'Supprimer'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default function AdminUsers() {
+  const { user: currentUser } = useAuth();
+  const { data: users = [], isLoading } = useUsers();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
+  const { success, error } = useNotification();
+  const [page, setPage] = useState(1);
+  const [userToDelete, setUserToDelete] = useState<UserAccount | null>(null);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedUsers = useMemo(
+    () => users.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [currentPage, users],
+  );
+
+  const admins = users.filter((user) => user.role === 'ADMIN' && user.isActive).length;
+  const editors = users.filter((user) => user.role === 'EDITOR' && user.isActive).length;
+  const disabled = users.filter((user) => !user.isActive).length;
+
+  const updateRole = async (user: UserAccount, role: UserRole) => {
+    if (user.role === role) return;
+
+    try {
+      await updateUser.mutateAsync({ id: user.id, payload: { role } });
+      success('Role mis a jour');
+    } catch {
+      error('Impossible de modifier ce role');
+    }
+  };
+
+  const updateStatus = async (user: UserAccount, isActive: boolean) => {
+    if (user.isActive === isActive) return;
+
+    try {
+      await updateUser.mutateAsync({ id: user.id, payload: { isActive } });
+      success(isActive ? 'Compte active' : 'Compte desactive');
+    } catch {
+      error('Impossible de modifier ce compte');
+    }
+  };
+
+  const confirmDelete = async (payload: DeleteUserPayload) => {
+    if (!userToDelete) return;
+
+    try {
+      await deleteUser.mutateAsync({ id: userToDelete.id, payload });
+      success('Utilisateur supprime');
+      setUserToDelete(null);
+    } catch (caughtError) {
+      const message =
+        typeof caughtError === 'object' &&
+        caughtError !== null &&
+        'response' in caughtError &&
+        typeof caughtError.response === 'object' &&
+        caughtError.response !== null &&
+        'data' in caughtError.response &&
+        typeof caughtError.response.data === 'object' &&
+        caughtError.response.data !== null &&
+        'message' in caughtError.response.data &&
+        typeof caughtError.response.data.message === 'string'
+          ? caughtError.response.data.message
+          : 'Suppression impossible. Verifiez la confirmation.';
+
+      error(message);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Loader isLoading={isLoading} />
+
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-black text-foreground tracking-tight">Utilisateurs</h1>
+        <p className="text-sm text-muted-foreground">
+          Nommez les administrateurs et editeurs. Les editeurs gardent toute la gestion du contenu sans acces aux roles.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-primary/10 text-primary rounded-lg">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Admins actifs</p>
+            <p className="text-xl font-black">{admins}</p>
+          </div>
+        </div>
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-secondary/10 text-blue-600 rounded-lg">
+            <UserCog size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Editeurs actifs</p>
+            <p className="text-xl font-black">{editors}</p>
+          </div>
+        </div>
+        <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-muted text-muted-foreground rounded-lg">
+            <CircleSlash2 size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Comptes desactives</p>
+            <p className="text-xl font-black">{disabled}</p>
+          </div>
         </div>
       </div>
-      {isOpen && options && (
-        <ConfirmDialog
-          title={options.title}
-          message={options.message}
-          confirmText={options.confirmText}
-          cancelText={options.cancelText}
-          confirmColor={options.confirmColor}
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
+
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        {users.length === 0 && !isLoading ? (
+          <div className="p-16 text-center">
+            <Users size={44} className="mx-auto text-slate-300 mb-3" />
+            <p className="text-muted-foreground">Aucun utilisateur trouve</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-100">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold uppercase text-muted-foreground">Utilisateur</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold uppercase text-muted-foreground">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold uppercase text-muted-foreground">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold uppercase text-muted-foreground">Derniere connexion</th>
+                    <th className="px-6 py-3 text-right text-xs font-bold uppercase text-muted-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedUsers.map((user) => {
+                    const isSelf = user.id === currentUser?.id;
+
+                    return (
+                      <tr key={user.id} className="hover:bg-muted/70">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <UserAvatar user={user} />
+                            <div className="min-w-0">
+                              <div className="font-bold text-foreground truncate">{user.name}</div>
+                              <div className="text-sm text-muted-foreground truncate">{user.email}</div>
+                              {isSelf && <div className="text-xs font-semibold text-primary mt-1">Votre compte</div>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-2">
+                            <span className={`w-fit px-2.5 py-1 rounded-full text-xs font-bold ${roleStyles[user.role]}`}>
+                              {roles.find((role) => role.value === user.role)?.label}
+                            </span>
+                            <select
+                              value={user.role}
+                              disabled={isSelf || updateUser.isPending}
+                              onChange={(event) => updateRole(user, event.target.value as UserRole)}
+                              className="w-44 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground disabled:bg-muted disabled:text-muted-foreground"
+                              aria-label={`Modifier le role de ${user.name}`}
+                            >
+                              {roles.map((role) => (
+                                <option key={role.value} value={role.value}>
+                                  {role.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <label className="inline-flex items-center gap-3 text-sm font-medium text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={user.isActive}
+                              disabled={isSelf || updateUser.isPending}
+                              onChange={(event) => updateStatus(user, event.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-aemb-green"
+                            />
+                            {user.isActive ? 'Actif' : 'Desactive'}
+                          </label>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {formatDate(user.lastLoginAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              disabled={isSelf || deleteUser.isPending}
+                              onClick={() => setUserToDelete(user)}
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+                              title={isSelf ? 'Action indisponible sur votre propre compte' : 'Supprimer'}
+                              aria-label={`Supprimer ${user.name}`}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border px-6 py-4">
+              <p className="text-sm text-muted-foreground">
+                Page {currentPage} sur {totalPages} - {users.length} utilisateur{users.length > 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((value) => Math.max(1, value - 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={16} />
+                  Precedent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Suivant
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {userToDelete && (
+        <DeleteUserModal
+          user={userToDelete}
+          currentUser={currentUser as UserAccount}
+          isPending={deleteUser.isPending}
+          onClose={() => setUserToDelete(null)}
+          onConfirm={confirmDelete}
         />
       )}
     </div>
   );
 }
-
-export default AdminUsersPage;

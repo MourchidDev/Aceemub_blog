@@ -61,7 +61,7 @@ function AdminCategoriesPage() {
           placeholder="Nom de la catégorie…"
           className="h-11 flex-1 rounded-full border border-border bg-card px-4 text-sm"
         />
-        <button className="inline-flex h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground">
+        <button type="submit" className="inline-flex h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground">
           <Plus className="h-4 w-4" /> Ajouter
         </button>
       </form>

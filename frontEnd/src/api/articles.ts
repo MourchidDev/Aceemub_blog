@@ -24,11 +24,17 @@ const toDisplayArticle = (a: Article): Article => {
 };
 
 export const articlesApi = {
-  getAll: async () =>
-    (await apiClient.get<Article[]>("/articles/all")).data.filter(Boolean).map(toDisplayArticle),
-  getPublished: async () =>
-    (await apiClient.get<Article[]>("/articles")).data.filter(Boolean).map(toDisplayArticle),
-  getById: async (id: string) => {
+  getAll: async (): Promise<Article[]> => {
+    const { data } = await apiClient.get<Article[]>('/articles/all');
+    return data.filter(Boolean).map(toDisplayArticle);
+  },
+
+  getPublished: async (): Promise<Article[]> => {
+    const { data } = await apiClient.get<Article[]>('/articles');
+    return data.filter(Boolean).map(toDisplayArticle);
+  },
+
+  getById: async (id: string): Promise<Article | undefined> => {
     const { data } = await apiClient.get<Article>(`/articles/${id}`);
     return data ? toDisplayArticle(data) : undefined;
   },

@@ -6,4 +6,5 @@ export * from "./events";
 export * from "./announcements";
 export * from "./forms";
 export * from "./users";
+export * from './users';
 export { default as apiClient, API_ORIGIN } from "./client";

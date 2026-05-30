@@ -4,13 +4,19 @@ import type { Event } from "@/types";
 export const eventsApi = {
   getAll: async () => (await apiClient.get<Event[]>("/events")).data,
   getById: async (id: string) => (await apiClient.get<Event>(`/events/${id}`)).data,
-  create: async (payload: any) => (await apiClient.post<Event>("/events", payload)).data,
-  update: async (id: string, payload: any) => (await apiClient.put<Event>(`/events/${id}`, payload)).data,
+  create: async (payload: FormData | any) => {
+    const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : {};
+    return (await apiClient.post<Event>("/events", payload, config)).data;
+  },
+  update: async (id: string, payload: FormData | any) => {
+    const config = payload instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : {};
+    return (await apiClient.put<Event>(`/events/${id}`, payload, config)).data;
+  },
   delete: async (id: string) => apiClient.delete(`/events/${id}`),
   addAlbum: async (eventId: string, images: File[], albumTitle?: string) => {
     const form = new FormData();
     images.forEach(img => form.append("images", img));
-    if (albumTitle) form.append("title", albumTitle);
+    if (albumTitle) form.append("albumTitle", albumTitle);
     return (await apiClient.post(`/events/${eventId}/albums`, form, {
       headers: { "Content-Type": "multipart/form-data" },
     })).data;

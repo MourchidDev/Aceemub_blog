@@ -36,7 +36,7 @@ function EventsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
         eyebrow="Agenda"
         title="Événements à venir"
@@ -52,9 +52,9 @@ function EventsPage() {
           return (
             <li key={e.id} className="overflow-hidden rounded-3xl bg-card shadow-card">
               <div className="flex">
-                <div className="flex w-20 flex-col items-center justify-center bg-foreground py-5 text-background sm:w-24">
+                <div className="flex w-20 flex-col items-center justify-center bg-primary text-primary-foreground py-5 sm:w-24">
                   <span className="font-serif text-3xl leading-none">{day}</span>
-                  <span className="mt-1 text-[11px] uppercase tracking-widest text-background/70">{month}</span>
+                  <span className="mt-1 text-[11px] uppercase tracking-widest opacity-70">{month}</span>
                 </div>
                 <div className="flex-1 p-5">
                   <h3 className="font-serif text-xl leading-tight">{e.title}</h3>

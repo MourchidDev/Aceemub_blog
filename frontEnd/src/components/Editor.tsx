@@ -13,7 +13,7 @@ const MenuButton = ({ onClick, isActive, children }: any) => (
     type="button"
     onClick={onClick}
     className={`p-2 rounded-lg transition-colors ${
-      isActive ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600'
+      isActive ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
     }`}
   >
     {children}
@@ -40,9 +40,9 @@ export default function Editor({ content, onChange }: EditorProps) {
   if (!editor) return null;
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white focus-within:ring-4 focus-within:ring-emerald-50 focus-within:border-emerald-500 transition-all">
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-card focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary transition-all">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 border-b border-gray-100 bg-gray-50/50">
+      <div className="flex flex-wrap gap-1 p-2 border-b border-border bg-gray-50/50">
         <MenuButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')}>
           <Bold size={18} />
         </MenuButton>

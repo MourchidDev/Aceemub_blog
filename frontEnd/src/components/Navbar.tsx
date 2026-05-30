@@ -1,173 +1,137 @@
-import { useState } from "react";
-import { Link, useLocation, NavLink } from "react-router-dom";
-import { Menu, X, Search, LogIn, LogOut, Shield } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
-import logo from "@/assets/ac.png";
-
-const navItems = [
-  { to: "/", label: "Accueil", end: true },
-  { to: "/blog", label: "Blog" },
-  { to: "/evenements", label: "Événements" },
-  { to: "/annonces", label: "Annonces" },
-  { to: "/a-propos", label: "À propos" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/contact", label: "Contact" },
-  { to: "/rejoindre", label: "Rejoindre" },
-];
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { LogOut, Menu, UserCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
+import sharedImage from '../assets/ac.png';
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const isHome = location.pathname === '/';
   const { user, isAuthenticated, logout } = useAuth();
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const canAccessAdmin = user?.role === 'ADMIN' || user?.role === 'EDITOR';
 
-  if (location.pathname.startsWith("/admin")) return null;
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [user?.avatarUrl]);
+
+  const userAvatar = user?.avatarUrl && !avatarFailed ? (
+    <img
+      src={user.avatarUrl}
+      alt=""
+      className="h-7 w-7 flex-shrink-0 rounded-full object-cover"
+      referrerPolicy="no-referrer"
+      onError={() => setAvatarFailed(true)}
+    />
+  ) : (
+    <UserCircle size={24} className="flex-shrink-0" />
+  );
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || !isHome ? 'bg-background/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-6'}`}>
+        <div className="max-w-6xl mx-auto px-5 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="ACEEMUB" className="h-10 w-10 object-contain" />
-            <span className="font-serif text-lg leading-none">
-              ACEEMUB<span className="text-primary">.</span>
-            </span>
+            {/* <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">A</div> */}
+             <img src={sharedImage} alt="Logo ACEEMUB" className="w-15 h-15 rounded-full flex items-center justify-center" />
+            <span className="font-serif text-xl font-bold text-primary">ACEEMUB Benin</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.slice(0, 6).map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                end={n.end}
-                className={({ isActive }) =>
-                  cn(
-                    "rounded-full px-3 py-1.5 text-sm transition-colors",
-                    isActive
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )
-                }
-              >
-                {n.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-1">
-            <Link
-              to="/blog"
-              className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted"
-              aria-label="Rechercher"
-            >
-              <Search className="h-4 w-4" />
-            </Link>
-            {!isAuthenticated && (
-              <Link
-                to="/connexion"
-                className="hidden md:inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90"
-              >
-                <LogIn className="h-3.5 w-3.5" /> Connexion
-              </Link>
+          <div className="hidden md:flex items-center gap-6">
+            <Link to="/" className="text-sm font-medium hover:text-secondary transition-colors">Accueil</Link>
+            <Link to="/association" className="text-sm font-medium hover:text-secondary transition-colors">L'Association</Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/blog" className="text-sm font-medium hover:text-secondary transition-colors">Blog</Link>
+                <Link to="/evenements" className="text-sm font-medium hover:text-secondary transition-colors">Evenements</Link>
+                {canAccessAdmin && (
+                  <Link to="/admin" className="text-sm font-medium hover:text-secondary transition-colors">Admin</Link>
+                )}
+              </>
             )}
-            <button
-              type="button"
-              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-              onClick={() => setOpen((v) => !v)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"
-            >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div
-        className={cn(
-          "fixed inset-0 z-50 bg-background transition-opacity duration-200",
-          open ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      >
-        <div className="flex h-14 items-center justify-between border-b border-border px-4">
-          <span className="font-serif text-lg">Menu</span>
-          <button
-            type="button"
-            aria-label="Fermer"
-            onClick={() => setOpen(false)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-y-auto">
-          <ul className="flex-1 px-4 py-6">
-            {navItems.map((n) => (
-              <li key={n.to}>
-                <NavLink
-                  to={n.to}
-                  end={n.end}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center justify-between border-b border-border/60 py-4 font-serif text-2xl tracking-tight",
-                      isActive && "text-primary",
-                    )
-                  }
-                >
-                  {n.label}
-                  <span aria-hidden className="text-muted-foreground">→</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-          <div className="border-t border-border bg-sand px-4 py-5">
             {isAuthenticated ? (
-              <div className="space-y-3">
-                <div className="text-sm">
-                  Connecté en tant que <span className="font-semibold">{user?.name}</span>
-                </div>
-                <div className="flex gap-2">
-                  {(user?.role === "ADMIN" || user?.role === "EDITOR") && (
-                    <Link
-                      to="/admin/articles"
-                      onClick={() => setOpen(false)}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground"
-                    >
-                      <Shield className="h-3.5 w-3.5" /> Admin
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      logout();
-                      setOpen(false);
-                    }}
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium"
-                  >
-                    <LogOut className="h-3.5 w-3.5" /> Déconnexion
-                  </button>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-2 text-sm font-medium text-primary">
+                  {userAvatar}
+                  <span className="max-w-32 truncate">{user?.name}</span>
+                </span>
+                <button
+                  onClick={logout}
+                  className="text-muted-foreground hover:text-primary"
+                  aria-label="Se deconnecter"
+                  title="Se deconnecter"
+                >
+                  <LogOut size={20} />
+                </button>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Link
-                  to="/connexion"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  to="/inscription"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
-                >
-                  Inscription
-                </Link>
-              </div>
+              <Link to="/connexion" className="text-sm font-medium hover:text-secondary transition-colors">Connexion</Link>
+            )}
+            {isAuthenticated && (
+              <Link to="/rejoindre" className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all">
+                Nous Rejoindre
+              </Link>
             )}
           </div>
+
+          <button className="md:hidden text-primary" onClick={() => setIsMenuOpen(true)}>
+            <Menu size={28} />
+          </button>
         </div>
-      </div>
+      </nav>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            className="fixed inset-0 z-[60] bg-card p-8 flex flex-col"
+          >
+            <div className="flex justify-end">
+              <button onClick={() => setIsMenuOpen(false)} className="text-primary">
+                <X size={32} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-6 mt-12 text-2xl font-serif font-bold text-primary">
+              <Link to="/">Accueil</Link>
+              <Link to="/association">L'Association</Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/blog">Blog</Link>
+                  <Link to="/evenements">Evenements</Link>
+                  {canAccessAdmin && <Link to="/admin">Admin</Link>}
+                  <span className="flex items-center gap-3 text-left font-serif font-bold">
+                    {userAvatar}
+                    <span className="min-w-0 truncate">{user?.name}</span>
+                  </span>
+                  <button onClick={logout} className="text-left font-serif font-bold">
+                    Se deconnecter
+                  </button>
+                </>
+              ) : (
+                <Link to="/connexion">Connexion</Link>
+              )}
+              {isAuthenticated && (
+                <Link to="/rejoindre" className="bg-primary text-primary-foreground py-3 rounded-2xl text-lg mt-4 text-center font-medium">Nous Rejoindre</Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

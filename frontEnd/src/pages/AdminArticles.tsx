@@ -1,131 +1,141 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, Eye, Archive } from "lucide-react";
-import { articlesApi } from "@/api";
-import { toast } from "sonner";
-import ConfirmDialog from "@/components/ConfirmDialog";
-import { useConfirm } from "@/hooks/useConfirm";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, FileText, LayoutList } from 'lucide-react';
+import { useAdminArticles, useDeleteArticle, usePublishArticle, useArchiveArticle } from '../hooks/useArticles';
+import ArticleTable from '../components/ArticleTable';
+import { Article } from '../types';
+import Loader from '../components/Loader';
+import { useNotification } from '../components/NotificationContainer';
+import { useConfirm } from '../hooks/useConfirm';
+import ConfirmDialog from '../components/ConfirmDialog';
 
-
-
-const statusBadge = (s: string) =>
-  s === "PUBLISHED" ? "bg-secondary/30 text-accent" :
-  s === "DRAFT" ? "bg-muted text-muted-foreground" :
-  "bg-foreground/10 text-foreground";
-
-function AdminArticlesPage() {
-  const qc = useQueryClient();
-  const { data: list = [], isLoading } = useQuery({
-    queryKey: ["admin", "articles"],
-    queryFn: () => articlesApi.getAll().catch(() => []),
-    initialData: [],
-  });
-
+export default function AdminArticles() {
+  const navigate = useNavigate();
+  const { data: articles = [], isLoading } = useAdminArticles();
+  const deleteMutation = useDeleteArticle();
+  const publishMutation = usePublishArticle();
+  const archiveMutation = useArchiveArticle();
+  const { success, error } = useNotification();
   const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
 
-  const del = useMutation({
-    mutationFn: (id: string) => articlesApi.delete(id),
-    onSuccess: () => { toast.success("Article supprimé"); qc.invalidateQueries({ queryKey: ["admin", "articles"] }); },
-    onError: () => toast.error("Échec suppression"),
-  });
-  const pub = useMutation({
-    mutationFn: (id: string) => articlesApi.publish(id),
-    onSuccess: () => { toast.success("Publié"); qc.invalidateQueries({ queryKey: ["admin", "articles"] }); },
-  });
-  const arc = useMutation({
-    mutationFn: (id: string) => articlesApi.archive(id),
-    onSuccess: () => { toast.success("Archivé"); qc.invalidateQueries({ queryKey: ["admin", "articles"] }); },
-  });
+  const handleEdit = (article: Article) =>
+    navigate(`/admin/articles/${article.id}/edit`);
 
-  const handleDelete = async (id: string, title: string) => {
+  const handleDelete = async (id: string) => {
     const confirmed = await confirm({
-      title: "Supprimer l'article",
-      message: `Êtes-vous sûr de vouloir supprimer <strong>${title}</strong> ? Cette action est irréversible.`,
-      confirmText: "Supprimer",
-      confirmColor: "danger",
+      title: 'Supprimer cet article ?',
+      message: 'Cette action est <strong>irréversible</strong>. L\'article sera définitivement supprimé.',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      confirmColor: 'danger',
     });
-    if (confirmed) del.mutate(id);
+
+    if (!confirmed) return;
+
+    try {
+      await deleteMutation.mutateAsync(id);
+      success('Article supprimé avec succès');
+    } catch (err) {
+      error('Erreur lors de la suppression de l\'article');
+      console.error("Erreur lors de la suppression", err);
+    }
+  };
+
+  const handlePublish = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Publier cet article ?',
+      message: 'L\'article sera visible par tous les visiteurs du site.',
+      confirmText: 'Publier',
+      cancelText: 'Annuler',
+      confirmColor: 'primary',
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await publishMutation.mutateAsync(id);
+      success('Article publié avec succès');
+    } catch (err) {
+      error('Erreur lors de la publication');
+      console.error("Erreur lors de la publication", err);
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Archiver cet article ?',
+      message: 'L\'article ne sera plus visible publiquement mais restera accessible dans les archives.',
+      confirmText: 'Archiver',
+      cancelText: 'Annuler',
+      confirmColor: 'primary',
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await archiveMutation.mutateAsync(id);
+      success('Article archivé avec succès');
+    } catch (err) {
+      error('Erreur lors de l\'archivage');
+      console.error("Erreur lors de l'archivage", err);
+    }
   };
 
   return (
-    <div>
-      <div className="mb-5 flex items-center justify-between">
+    <div className="space-y-6">
+      <Loader isLoading={isLoading} />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="font-serif text-3xl">Articles</h1>
-          <p className="text-sm text-muted-foreground">Crée, modifie et publie le contenu du blog.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Articles</h1>
+          <p className="text-muted-foreground text-sm">Gérez, éditez et publiez vos contenus.</p>
         </div>
-        <Link
-          to="/admin/articles/nouveau"
-          className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground"
-        >
-          <Plus className="h-4 w-4" /> Nouvel article
-        </Link>
+        <button
+          onClick={() => navigate('/admin/articles/new')}
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all">
+          <Plus size={20} /> Nouvel article
+        </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Titre</th>
-                <th className="px-4 py-3">Catégorie</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading && (
-                <tr><td className="px-4 py-6 text-muted-foreground" colSpan={5}>Chargement…</td></tr>
-              )}
-              {!isLoading && list.length === 0 && (
-                <tr><td className="px-4 py-10 text-center text-muted-foreground" colSpan={5}>Aucun article. Crée le premier !</td></tr>
-              )}
-              {list.map((a) => (
-                <tr key={a.id} className="border-t border-border">
-                  <td className="px-4 py-3 font-medium">{a.title}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.category?.name ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${statusBadge(a.status)}`}>{a.status.toLowerCase()}</span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.date}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1">
-                      <Link to={`/blog/${a.id}`} className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" aria-label="Voir">
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                      <Link to={`/admin/articles/${a.id}/edition`} className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" aria-label="Éditer">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                      {a.status === "DRAFT" && (
-                        <button onClick={() => pub.mutate(a.id)} className="grid h-8 w-8 place-items-center rounded-full text-accent hover:bg-accent/10" aria-label="Publier">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                      )}
-                      {a.status === "PUBLISHED" && (
-                        <button onClick={() => arc.mutate(a.id)} className="grid h-8 w-8 place-items-center rounded-full hover:bg-muted" aria-label="Archiver">
-                          <Archive className="h-4 w-4" />
-                        </button>
-                      )}
-                      <button onClick={() => handleDelete(a.id, a.title)} className="grid h-8 w-8 place-items-center rounded-full text-destructive hover:bg-destructive/10" aria-label="Supprimer">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-primary/10 text-primary rounded-lg"><FileText size={20}/></div>
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase">Total</p>
+            <p className="text-xl font-bold text-foreground">{articles.length}</p>
+          </div>
         </div>
       </div>
+
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        {!isLoading && articles.length > 0 ? (
+          <ArticleTable
+            articles={articles}
+            onDelete={handleDelete}
+            onPublish={handlePublish}
+            onArchive={handleArchive}
+          />
+        ) : !isLoading && articles.length === 0 ? (
+          <div className="p-20 text-center">
+            <div className="inline-flex p-6 bg-muted rounded-full text-muted-foreground mb-4">
+                <LayoutList size={48} />
+            </div>
+            <h3 className="text-lg font-bold text-foreground">Aucun article trouvé</h3>
+            <p className="text-muted-foreground mb-6">Commencez par rédiger votre première histoire.</p>
+            <button
+                onClick={() => navigate('/admin/articles/new')}
+                className="text-primary font-medium hover:underline"
+            >
+                Créer un article maintenant
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Dialog de confirmation */}
       {isOpen && options && (
         <ConfirmDialog
-          title={options.title}
-          message={options.message}
-          confirmText={options.confirmText}
-          cancelText={options.cancelText}
-          confirmColor={options.confirmColor}
+          {...options}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
         />
@@ -133,5 +143,3 @@ function AdminArticlesPage() {
     </div>
   );
 }
-
-export default AdminArticlesPage;

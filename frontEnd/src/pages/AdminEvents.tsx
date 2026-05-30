@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar, MapPin, Trash2, Eye } from "lucide-react";
+import { Calendar, MapPin, Trash2, Eye, Plus, Pencil } from "lucide-react";
 import { eventsApi } from "@/api";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -16,7 +16,7 @@ function AdminEventsPage() {
     initialData: [],
   });
   const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm();
-  
+
   const del = useMutation({
     mutationFn: (id: string) => eventsApi.delete(id),
     onSuccess: () => { toast.success("Événement supprimé"); qc.invalidateQueries({ queryKey: ["admin", "events"] }); },
@@ -34,8 +34,15 @@ function AdminEventsPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="font-serif text-3xl">Événements</h1>
-      <p className="text-sm text-muted-foreground">Gère les événements et leurs albums photos.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-serif text-3xl">Événements</h1>
+          <p className="text-sm text-muted-foreground">Gère les événements et leurs albums photos.</p>
+        </div>
+        <Link to="/admin/evenements/new" className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground">
+          <Plus className="h-4 w-4" /> Créer
+        </Link>
+      </div>
 
       <ul className="mt-6 space-y-3">
         {list.map((e) => (
@@ -50,10 +57,13 @@ function AdminEventsPage() {
               </div>
             </div>
             <div className="flex gap-1">
-              <Link to={`/admin/evenements/${e.id}`} className="grid h-9 w-9 place-items-center rounded-full hover:bg-muted">
+              <Link to={`/admin/evenements/${e.id}/edit`} className="grid h-9 w-9 place-items-center rounded-full hover:bg-muted" title="Modifier">
+                <Pencil className="h-4 w-4" />
+              </Link>
+              <Link to={`/admin/evenements/${e.id}`} className="grid h-9 w-9 place-items-center rounded-full hover:bg-muted" title="Détails">
                 <Eye className="h-4 w-4" />
               </Link>
-              <button onClick={() => handleDelete(e.id, e.title)} className="grid h-9 w-9 place-items-center rounded-full text-destructive hover:bg-destructive/10">
+              <button onClick={() => handleDelete(e.id, e.title)} className="grid h-9 w-9 place-items-center rounded-full text-destructive hover:bg-destructive/10" title="Supprimer">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>

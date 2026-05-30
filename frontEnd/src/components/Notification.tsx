@@ -20,10 +20,10 @@ const icons = {
 
 // Styles pour le conteneur principal (Effet de verre et bordure latérale)
 const containerStyles = {
-  success: 'bg-white/80 dark:bg-slate-900/80 border-l-4 border-l-green-500 border-gray-100 dark:border-slate-800',
-  error: 'bg-white/80 dark:bg-slate-900/80 border-l-4 border-l-red-500 border-gray-100 dark:border-slate-800',
-  warning: 'bg-white/80 dark:bg-slate-900/80 border-l-4 border-l-amber-500 border-gray-100 dark:border-slate-800',
-  info: 'bg-white/80 dark:bg-slate-900/80 border-l-4 border-l-blue-500 border-gray-100 dark:border-slate-800',
+  success: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-primary border-border dark:border-slate-800',
+  error: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-red-500 border-border dark:border-slate-800',
+  warning: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-amber-500 border-border dark:border-slate-800',
+  info: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-blue-500 border-border dark:border-slate-800',
 };
 
 // Styles pour l'icône et son arrière-plan arrondi
@@ -31,7 +31,7 @@ const iconWrapperStyles = {
   success: 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400',
   error: 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400',
   warning: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
-  info: 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
+  info: 'bg-blue-100 text-blue-600 dark:bg-secondary/100/20 dark:text-blue-400',
 };
 
 export default function Notification({ id, type, message, duration = 4000, onClose }: NotificationProps) {
@@ -64,7 +64,7 @@ export default function Notification({ id, type, message, duration = 4000, onClo
         <h4 className="text-sm font-bold capitalize text-gray-900 dark:text-white mb-0.5">
           {type}
         </h4>
-        <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium leading-tight">
+        <p className="text-[13px] text-muted-foreground dark:text-gray-400 font-medium leading-tight">
           {message}
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function Notification({ id, type, message, duration = 4000, onClo
           flex-shrink-0 w-8 h-8 rounded-full 
           flex items-center justify-center 
           hover:bg-gray-100 dark:hover:bg-slate-800 
-          text-gray-400 dark:text-gray-500
+          text-gray-400 dark:text-muted-foreground
           transition-all duration-200
         "
         aria-label="Fermer"

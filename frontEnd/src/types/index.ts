@@ -55,6 +55,20 @@ export interface Album {
   createdAt: string;
 }
 
+export interface UserAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  authProvider: 'LOCAL' | 'GOOGLE';
+  avatarUrl?: string | null;
+  isActive: boolean;
+  emailVerifiedAt?: string | null;
+  lastLoginAt?: string | null;
+  createdAt: string;
+}
+
+
 export interface Event {
   id: string;
   title: string;

@@ -19,6 +19,6 @@ router.get("/", requireAuth, authorize('ADMIN', 'EDITOR'), getAllCommentsControl
 router.put("/approve/:id", requireAuth ,authorize('ADMIN', 'EDITOR'),approveCommentController);
 router.put("/reject/:id", requireAuth ,authorize('ADMIN', 'EDITOR'),rejectCommentController);
 router.put("/:id", requireAuth, updateCommentController);
-router.delete("/:id", deleteCommentController);
+router.delete("/:id", requireAuth, authorize('ADMIN', 'EDITOR'), deleteCommentController);
 
 export default router;
