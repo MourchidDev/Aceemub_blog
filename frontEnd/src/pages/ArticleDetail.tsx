@@ -1,6 +1,6 @@
-import React from 'react';
+import { Calendar, User, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, User, ArrowLeft, Share2, Facebook, Twitter, MessageCircle, ArrowRight } from 'lucide-react';
+import ShareButton from '../components/ShareButton';
 import { motion } from 'motion/react';
 import { useArticle } from '../hooks/useArticles';
 import Loader from '../components/Loader';
@@ -51,13 +51,10 @@ export default function ArticleDetail() {
                 <span>Publié le {article.date}</span>
               </div>
               <div className="flex items-center gap-2 text-sm ml-auto">
-                <Share2 size={18} />
-                <span>Partager</span>
-                <div className="flex gap-2 ml-2">
-                  <button className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all"><Facebook size={14} /></button>
-                  <button className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-sky-400 hover:text-white transition-all"><Twitter size={14} /></button>
-                  <button className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all"><MessageCircle size={14} /></button>
-                </div>
+                <ShareButton
+                  title={article.title}
+                  text={article.excerpt ?? article.title}
+                />
               </div>
             </div>
           </motion.div>

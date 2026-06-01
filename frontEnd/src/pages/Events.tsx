@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, MapPin, Clock, Filter, ArrowRight, Bell } from 'lucide-react';
+import ShareButton from '../components/ShareButton';
 import { useEvents } from '../hooks/useEvents';
 
 const CATEGORIES = ["Tous", "Conférence", "Formation", "Social", "Sport"];
@@ -86,7 +87,12 @@ export default function EventsPage() {
                     <span>{ev.time}</span>
                   </div>
                 </div>
-                <div className="mt-8 flex justify-end">
+                <div className="mt-8 flex justify-end gap-3">
+                  <ShareButton
+                    title={ev.title}
+                    text={ev.desc}
+                    url={`${window.location.origin}/evenements/${ev.id}`}
+                  />
                   <button className="bg-aemb-green text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-transform shadow-lg shadow-emerald-900/10 flex items-center gap-2">
                     S'inscrire <ArrowRight size={18} />
                   </button>

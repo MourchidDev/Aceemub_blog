@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Calendar, ArrowRight, Mail } from 'lucide-react';
+import ShareButton from '../components/ShareButton';
 import { motion } from 'motion/react';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
@@ -127,6 +128,12 @@ export default function BlogPage() {
                     <Link to={`/blog/${art.id}`} className="text-aemb-green font-bold text-sm flex items-center gap-2 group/btn">
                       Lire la suite <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
+                    <ShareButton
+                      title={art.title}
+                      text={art.excerpt ?? art.title}
+                      url={`${window.location.origin}/blog/${art.id}`}
+                      compact
+                    />
                   </div>
                 </div>
               </motion.article>
