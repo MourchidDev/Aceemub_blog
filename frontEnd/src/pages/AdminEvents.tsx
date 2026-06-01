@@ -11,7 +11,6 @@ import {
   FolderOpen, Eye, EyeOff, Archive,
 } from 'lucide-react';
 
-const MIN_IMAGES = 5;
 const STATUS_LABELS: Record<ContentStatus, string> = {
   DRAFT: 'Brouillon',
   PUBLISHED: 'Publié',
@@ -124,7 +123,6 @@ function EventModal({ initial, isPending, onClose, onSubmit }: EventModalProps) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.description || !form.location || !form.eventDate) return;
-    if (!isEdit && images.length < MIN_IMAGES) return;
 
     if (isEdit) {
       onSubmit({ id: initial!.id, ...form });
@@ -194,7 +192,7 @@ function EventModal({ initial, isPending, onClose, onSubmit }: EventModalProps) 
           </div>
 
           {!isEdit && (
-            <ImageDropzone files={images} onChange={setImages} min={MIN_IMAGES} label="Photos de l'événement" />
+            <ImageDropzone files={images} onChange={setImages} label="Photos de l'événement (optionnel)" />
           )}
 
           <div className="flex gap-3 pt-2">
@@ -203,7 +201,7 @@ function EventModal({ initial, isPending, onClose, onSubmit }: EventModalProps) 
             </button>
             <button
               type="submit"
-              disabled={isPending || !form.title || !form.description || !form.location || !form.eventDate || (!isEdit && images.length < MIN_IMAGES)}
+              disabled={isPending || !form.title || !form.description || !form.location || !form.eventDate}
               className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isPending ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}

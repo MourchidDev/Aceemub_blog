@@ -126,8 +126,8 @@ export default function Home() {
               <div key={ev.id} className="bg-white p-6 rounded-3xl flex items-center justify-between hover:shadow-md transition-shadow border border-slate-100">
                 <div className="flex items-center gap-6">
                   <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex flex-col items-center justify-center text-aemb-green">
-                    <span className="text-xs font-bold uppercase">{ev.date.split(' ')[1]}</span>
-                    <span className="text-xl font-bold">{ev.date.split(' ')[0]}</span>
+                    <span className="text-xs font-bold uppercase">{new Date(ev.eventDate).toLocaleString('fr-FR', { month: 'short' })}</span>
+                    <span className="text-xl font-bold">{new Date(ev.eventDate).getDate()}</span>
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-slate-900">{ev.title}</h4>
