@@ -38,17 +38,26 @@ export const articlesApi = {
     const { data } = await apiClient.get<Article>(`/articles/${id}`);
     return data ? toDisplayArticle(data) : undefined;
   },
-  create: async (payload: ArticlePayload) =>
-    toDisplayArticle((await apiClient.post<Article>("/articles", payload)).data),
+  
+  create: async (payload: ArticlePayload | FormData) => {
+    const cfg = payload instanceof FormData
+      ? { headers: { "Content-Type": "multipart/form-data" } }
+      : {};
+    return toDisplayArticle((await apiClient.post<Article>("/articles", payload, cfg)).data);
+  },
+  
   update: async (id: string, payload: ArticlePayload | FormData) => {
     const cfg = payload instanceof FormData
       ? { headers: { "Content-Type": "multipart/form-data" } }
       : {};
     return toDisplayArticle((await apiClient.put<Article>(`/articles/${id}`, payload, cfg)).data);
   },
+  
   delete: async (id: string) => apiClient.delete(`/articles/${id}`),
+  
   publish: async (id: string) =>
     toDisplayArticle((await apiClient.post<Article>(`/articles/${id}/publish`)).data),
+  
   archive: async (id: string) =>
     toDisplayArticle((await apiClient.post<Article>(`/articles/${id}/archive`)).data),
 };

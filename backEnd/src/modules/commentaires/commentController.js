@@ -8,24 +8,40 @@ import {
 } from "./commentService.js";
 import prisma from "../../lib/prisma.js";
 
+// Liste des mots interdits
+const BANNED_WORDS = [
+    'connard', 'salaud', 'putain', 'merde', 'con', 'idiot', 'imbécile',
+    'crétin', 'débile', 'enculé', 'pute', 'salope', 'connasse', 'batard'
+];
+
+// Fonction pour vérifier les gros mots
+const containsBadWords = (text) => {
+    const lowerText = text.toLowerCase();
+    return BANNED_WORDS.some(word => lowerText.includes(word));
+};
 
 // endPoint pour ajouter un commentaire
 export const addCommentController = async (req, res, next) => {
     try {
-        const user = req.user; // Peut être undefined si pas de middleware authorize
+        const user = req.user;
         
+        // Vérifier les gros mots
+        if (containsBadWords(req.body.content)) {
+            return res.status(400).json({ 
+                message: "Votre commentaire contient des mots inappropriés et ne peut pas être publié." 
+            });
+        }
+
         const commentData = {
             content: req.body.content,
             articleId: req.body.articleId,
             parentId: req.body.parentId || null,
-            status: 'PENDING'
+            status: 'APPROVED' // Approbation automatique
         };
 
-        // Si l'utilisateur est authentifié, utiliser son ID
         if (user) {
             commentData.userId = user.id;
         } else {
-            // Sinon, utiliser les données fournies dans le body
             commentData.authorName = req.body.authorName;
             commentData.authorEmail = req.body.authorEmail;
         }

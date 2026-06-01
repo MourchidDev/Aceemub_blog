@@ -4,21 +4,31 @@ import { useEffect } from "react";
 import { LogOut, Shield, User as UserIcon, ChevronRight, BookOpen, Calendar, Megaphone } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
-
-
 function AccountPage() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const nav = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) nav("/connexion");
+    if (!isLoading && !isAuthenticated) {
+      nav("/connexion");
+    }
   }, [isLoading, isAuthenticated, nav]);
 
-  if (!user) return null;
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 pt-20 text-center">
+        <p className="text-muted-foreground">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow="Mon espace" title={`Salam, ${user.name}`} description="Bienvenue dans ton espace ACEEMUB ." />
+    <div className="mx-auto max-w-2xl pb-8">
+      <PageHeader eyebrow="Mon espace" title={`Salam, ${user.name}`} description="Bienvenue dans ton espace ACEEMUB." />
 
       <section className="px-5">
         <div className="rounded-3xl bg-gradient-warm p-6 text-primary-foreground shadow-elevated">
@@ -27,6 +37,7 @@ function AccountPage() {
               {user.name[0]?.toUpperCase()}
             </div>
             <div>
+              <div className="font-medium">{user.name}</div>
               <div className="text-sm opacity-80">{user.email}</div>
               <div className="text-xs uppercase tracking-widest opacity-70">Rôle · {user.role.toLowerCase()}</div>
             </div>
@@ -37,7 +48,6 @@ function AccountPage() {
           {[
             { to: "/blog", icon: BookOpen, label: "Le blog" },
             { to: "/evenements", icon: Calendar, label: "Mes événements" },
-            { to: "/annonces", icon: Megaphone, label: "Annonces" },
             { to: "/rejoindre", icon: UserIcon, label: "Adhésion / Carte" },
           ].map((r) => (
             <Link

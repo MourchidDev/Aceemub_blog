@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExt from "@tiptap/extension-link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, Bold, Italic, List, Link as LinkIcon, Heading2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Save, Bold, Italic, List, Link as LinkIcon, Heading2, Upload, X } from "lucide-react";
 import { articlesApi, categoriesApi } from "@/api";
+import { useCreateArticle, useUpdateArticle } from "@/hooks/useArticles";
 import { toast } from "sonner";
 
 function ArticleFormShared({ id }: { id?: string }) {
   const nav = useNavigate();
   const qc = useQueryClient();
   const editing = !!id;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: existing } = useQuery({
     queryKey: ["article", id],
@@ -25,11 +27,15 @@ function ArticleFormShared({ id }: { id?: string }) {
     initialData: [],
   });
 
+  const createMutation = useCreateArticle();
+  const updateMutation = useUpdateArticle();
+
   const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [coverImage, setCoverImage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   const editor = useEditor({
     extensions: [StarterKit, LinkExt.configure({ openOnClick: false })],
@@ -44,38 +50,76 @@ function ArticleFormShared({ id }: { id?: string }) {
   useEffect(() => {
     if (existing && editor) {
       setTitle(existing.title);
-      setSlug(existing.slug);
       setCategoryId(existing.categoryId ?? "");
       setStatus(existing.status === "ARCHIVED" ? "DRAFT" : existing.status as any);
       setCoverImage(existing.coverImage ?? "");
+      setImagePreview(existing.coverImage ?? "");
       editor.commands.setContent(existing.content || "<p></p>");
     }
   }, [existing, editor]);
 
   const slugify = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-  useEffect(() => {
-    if (!editing && title && !slug) setSlug(slugify(title));
-  }, [title, slug, editing]);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const save = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        title, slug: slug || slugify(title), categoryId,
-        content: editor?.getHTML() ?? "<p></p>",
-        coverImage: coverImage || undefined, status,
-      };
-      return editing ? articlesApi.update(id!, payload) : articlesApi.create(payload);
-    },
-    onSuccess: () => {
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setCoverImage("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSave = async () => {
+    const slug = slugify(title);
+    
+    try {
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("slug", slug);
+        formData.append("categoryId", categoryId);
+        formData.append("content", editor?.getHTML() ?? "<p></p>");
+        formData.append("status", status);
+        formData.append("coverImage", imageFile);
+        
+        if (editing) {
+          await updateMutation.mutateAsync({ id: id!, payload: formData });
+        } else {
+          await createMutation.mutateAsync(formData);
+        }
+      } else {
+        const payload = {
+          title, slug, categoryId,
+          content: editor?.getHTML() ?? "<p></p>",
+          coverImage: coverImage || undefined, status,
+        };
+        
+        if (editing) {
+          await updateMutation.mutateAsync({ id: id!, payload });
+        } else {
+          await createMutation.mutateAsync(payload);
+        }
+      }
+      
       toast.success(editing ? "Article mis à jour" : "Article créé");
-      qc.invalidateQueries({ queryKey: ["admin", "articles"] });
+      qc.invalidateQueries({ queryKey: ["articles"] });
       nav("/admin/articles");
-    },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
-  });
+    } catch {
+      toast.error("Erreur lors de l'enregistrement");
+    }
+  };
 
   if (!editor) return null;
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const TBtn = ({ on, active, children, label }: any) => (
     <button type="button" onClick={on} aria-label={label}
@@ -97,11 +141,6 @@ function ArticleFormShared({ id }: { id?: string }) {
             value={title} onChange={(e) => setTitle(e.target.value)}
             placeholder="Titre de l'article"
             className="w-full bg-transparent font-serif text-3xl placeholder:text-muted-foreground/50 focus:outline-none"
-          />
-          <input
-            value={slug} onChange={(e) => setSlug(e.target.value)}
-            placeholder="slug-de-larticle"
-            className="h-9 w-full rounded-full border border-border bg-background px-3 text-xs text-muted-foreground focus:outline-none"
           />
 
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -139,10 +178,10 @@ function ArticleFormShared({ id }: { id?: string }) {
               <option value="PUBLISHED">Publié</option>
             </select>
             <button
-              onClick={() => save.mutate()} disabled={save.isPending || !title}
+              onClick={handleSave} disabled={isPending || !title}
               className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-primary text-sm font-medium text-primary-foreground disabled:opacity-50"
             >
-              <Save className="h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
+              <Save className="h-4 w-4" /> {isPending ? "Enregistrement…" : "Enregistrer"}
             </button>
           </div>
 
@@ -160,15 +199,42 @@ function ArticleFormShared({ id }: { id?: string }) {
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Image de couverture (URL)</h3>
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Image de couverture</h3>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            
+            {!imagePreview ? (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-2 flex h-24 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 text-sm text-muted-foreground hover:bg-muted/50"
+              >
+                <Upload className="h-4 w-4" /> Choisir une image
+              </button>
+            ) : (
+              <div className="relative mt-2">
+                <img src={imagePreview} alt="" className="aspect-video w-full rounded-xl object-cover" />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-destructive text-white"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            
             <input
               value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="https://…"
-              className="mt-2 h-10 w-full rounded-full border border-border bg-background px-3 text-sm"
+              placeholder="Ou URL de l'image..."
+              className="mt-2 h-9 w-full rounded-full border border-border bg-background px-3 text-xs"
             />
-            {coverImage && (
-              <img src={coverImage} alt="" className="mt-3 aspect-video w-full rounded-xl object-cover" />
-            )}
           </div>
         </aside>
       </div>
@@ -176,8 +242,5 @@ function ArticleFormShared({ id }: { id?: string }) {
   );
 }
 
-
-
 export { ArticleFormShared };
-
 export default ArticleFormShared;

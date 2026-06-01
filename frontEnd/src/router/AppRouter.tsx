@@ -26,6 +26,7 @@ import AdminEventFormPage from '../pages/AdminEventFormPage';
 import Register from '../pages/Register';
 import AdminEventDetail from '../pages/AdminEventDetail';
 import { UserRole } from '../types';
+import AccountPage from '../pages/Account';
 
 function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -86,6 +87,7 @@ export default function AppRouter() {
         <Route path="/membre/:id" element={<MemberCardPage />} />
 
         <Route element={<RequireAuth />}>
+          <Route path="/compte" element={<AccountPage/>} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:id" element={<ArticleDetail />} />
           <Route path="/evenements" element={<EventsPage />} />

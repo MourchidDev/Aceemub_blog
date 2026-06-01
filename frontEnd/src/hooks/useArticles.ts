@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { articlesApi } from '../api';
-import  {ArticlePayload} from '../types';
+import { ArticlePayload } from '../types';
 
 export const useArticles = () =>
   useQuery({ queryKey: ['articles', 'published'], queryFn: articlesApi.getPublished });
@@ -18,7 +18,7 @@ export const useArticle = (id: string) =>
 export const useCreateArticle = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: ArticlePayload) => articlesApi.create(payload),
+    mutationFn: (payload: ArticlePayload | FormData) => articlesApi.create(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['articles'] }),
   });
 };

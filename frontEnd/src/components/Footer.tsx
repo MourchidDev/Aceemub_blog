@@ -13,8 +13,8 @@ export default function Footer() {
               <span className="font-serif text-2xl">ACEEMUB</span>
             </div>
             <p className="mt-3 max-w-md text-sm text-background/70">
-              Association des Élèves et Étudiants Musulmans du Bénin. Un espace
-              spirituel, académique et fraternel pour grandir, apprendre et servir.
+              Association des Élèves et Étudiants Musulmans du Bénin. Science et efficacité 
+              au service de l'Islam.
             </p>
             <div className="mt-5 flex gap-2">
               <a href="#" aria-label="Facebook" className="grid h-9 w-9 place-items-center rounded-full border border-background/20 hover:bg-background/10">

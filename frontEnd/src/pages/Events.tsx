@@ -4,7 +4,7 @@ import { MapPin, Clock, Filter, Bell } from 'lucide-react';
 import ShareButton from '../components/ShareButton';
 import { useEvents } from '../hooks/useEvents';
 
-const CATEGORIES = ["Tous", "Conférence", "Formation", "Social", "Sport"];
+// const CATEGORIES = ["Tous", "Conférence", "Formation", "Social", "Sport"];
 
 export default function EventsPage() {
   const [activeCategory, setActiveCategory] = useState("Tous");
@@ -30,31 +30,6 @@ export default function EventsPage() {
               Formations, conférences, actions sociales et moments fraternels pour accompagner les étudiants musulmans du Bénin.
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Filter Section */}
-      <section className="py-12 bg-card border-b border-border sticky top-[72px] z-30 shadow-sm">
-        <div className="max-w-6xl mx-auto px-5 flex items-center gap-6">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <Filter size={20} />
-            <span className="font-semibold text-sm">Catégories:</span>
-          </div>
-          <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                  activeCategory === cat
-                    ? 'bg-secondary text-primary-foreground shadow-lg shadow-secondary/20'
-                    : 'bg-muted text-muted-foreground hover:bg-border'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 

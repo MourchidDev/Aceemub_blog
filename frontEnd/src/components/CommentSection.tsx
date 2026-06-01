@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { MessageCircle, Send, User, Clock, Edit2 } from 'lucide-react';
-import { useCommentsByArticle, useCreateComment,useUpdateComment } from '../hooks/useComments';
+import { useCommentsByArticle, useCreateComment, useUpdateComment } from '../hooks/useComments';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from './NotificationContainer';
 
 interface Props {
   articleId: string;
 }
+
+// Liste de mots interdits
+const BANNED_WORDS = [
+  'connard', 'salaud', 'putain', 'merde', 'con', 'idiot', 'imbécile',
+  'crétin', 'débile', 'abruti', 'enculé', 'pute', 'salope', 'bite', 'couille',
+  'bordel', 'chier', 'foutre', 'connasse', 'batard', 'salope'
+];
+
+const containsBadWords = (text: string): boolean => {
+  const lowerText = text.toLowerCase();
+  return BANNED_WORDS.some(word => lowerText.includes(word));
+};
 
 export default function CommentSection({ articleId }: Props) {
   const [content, setContent] = useState('');
@@ -24,10 +36,15 @@ export default function CommentSection({ articleId }: Props) {
     e.preventDefault();
     if (!content.trim()) return;
 
+    if (containsBadWords(content)) {
+      error('Votre commentaire contient des mots inappropriés et a été rejeté automatiquement.');
+      return;
+    }
+
     try {
       await createMutation.mutateAsync({ content, articleId });
       setContent('');
-      success('Commentaire envoyé ! Il sera visible après modération.');
+      success('Commentaire publié avec succès !');
     } catch {
       error('Erreur lors de l\'envoi du commentaire');
     }
@@ -45,6 +62,11 @@ export default function CommentSection({ articleId }: Props) {
 
   const handleUpdateSubmit = async (commentId: string) => {
     if (!editContent.trim()) return;
+
+    if (containsBadWords(editContent)) {
+      error('Votre commentaire contient des mots inappropriés. Veuillez reformuler.');
+      return;
+    }
 
     try {
       await updateMutation.mutateAsync({ id: commentId, content: editContent, articleId });

@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { useArticles } from '../hooks/useArticles';
 import { useCategories } from '../hooks/useCategories';
 import Loader from '../components/Loader';
+import logoAceemub from '../assets/ac.png';
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("Tous");
@@ -92,11 +93,15 @@ export default function BlogPage() {
                 transition={{ delay: index * 0.1 }}
                 className="group flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border hover:shadow-card hover:border-primary/30 transition-all"
               >
-                <div className="aspect-[16/10] overflow-hidden relative">
+                <div className="aspect-[16/10] overflow-hidden relative bg-muted">
                   <img
-                    src={art.coverImage || '/placeholder.png'}
+                    src={art.coverImage || logoAceemub}
                     alt={art.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className={`w-full h-full transition-transform duration-700 ${
+                      art.coverImage 
+                        ? 'object-cover group-hover:scale-110' 
+                        : 'object-contain p-8'
+                    }`}
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-md text-primary px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">
