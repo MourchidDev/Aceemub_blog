@@ -20,25 +20,25 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const confirmStyles = {
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+    danger: 'bg-destructive hover:bg-destructive/90 text-white',
+    primary: 'bg-primary hover:bg-primary/90 text-white',
   };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
-      
+
       <div className="relative w-full max-w-md bg-card rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-              <AlertTriangle size={16} className="text-amber-600" />
+            <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
+              <AlertTriangle size={16} className="text-secondary" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+            <h2 className="text-lg font-semibold text-foreground">{title}</h2>
           </div>
           <button
             onClick={onCancel}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-muted-foreground hover:bg-gray-100 transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
             <X size={18} />
           </button>
@@ -51,7 +51,7 @@ export default function ConfirmDialog({
         <div className="flex gap-3 px-6 pb-6">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-muted-foreground hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
           >
             {cancelText}
           </button>

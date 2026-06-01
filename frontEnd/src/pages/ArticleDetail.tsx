@@ -1,33 +1,22 @@
-import { Calendar, User, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Calendar, ArrowLeft, Clock } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import ShareButton from '../components/ShareButton';
-import { motion } from 'motion/react';
 import { useArticle } from '../hooks/useArticles';
 import Loader from '../components/Loader';
 import CommentSection from '../components/CommentSection';
+
+const readMinutes = (html: string) => {
+  const text = html.replace(/<[^>]*>/g, '');
+  return Math.ceil(text.split(/\s+/).length / 200);
+};
 
 export default function ArticleDetail() {
   const { id } = useParams();
   const { data: article, isLoading } = useArticle(id || '');
 
-  if (!article && !isLoading) {
-    return <div className="pt-40 text-center text-slate-400">Article introuvable.</div>;
+  if (!article || isLoading) {
+    return <Loader isLoading={isLoading} />;
   }
-
-  const handleSend = async () => {
-    if (!draft.trim()) return;
-    setSending(true);
-    try {
-      await commentsApi.create({ content: draft.trim(), articleId: id });
-      setDraft("");
-      toast.success("Commentaire envoyé. Il sera publié après modération.");
-      refetch();
-    } catch {
-      toast.error("Envoi impossible. Réessaie plus tard.");
-    } finally {
-      setSending(false);
-    }
-  };
 
   return (
     <article className="mx-auto max-w-2xl">
@@ -84,80 +73,24 @@ export default function ArticleDetail() {
       )}
 
       <div className="relative mt-8 px-5">
-        {/* Share rail */}
-        <div className="sticky top-20 float-left -ml-2 mr-4 hidden flex-col gap-2 md:flex">
-          <button aria-label="Partager" className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card hover:bg-muted">
-            <Share2 className="h-4 w-4" />
-          </button>
-          <a href="#" aria-label="Facebook" className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card hover:bg-muted">
-            <Facebook className="h-4 w-4" />
-          </a>
-          <a href="#" aria-label="Twitter" className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card hover:bg-muted">
-            <Twitter className="h-4 w-4" />
-          </a>
-        </div>
-
         <div
           className="prose prose-neutral mx-auto max-w-2xl font-sans text-[17px] leading-[1.75] text-foreground prose-headings:font-serif prose-headings:tracking-tight prose-a:text-primary"
           dangerouslySetInnerHTML={{ __html: article.content || `<p>${article.excerpt ?? ""}</p>` }}
         />
       </div>
 
-      {/* Comments */}
-      <section className="mt-12 border-t border-border px-5 pt-8">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="flex items-center gap-2 font-serif text-2xl">
-            <MessageCircle className="h-5 w-5" /> Commentaires ({comments.length})
-          </h2>
-
-          {isAuthenticated ? (
-            <div className="mt-4 flex gap-3">
-              <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                {user?.name?.[0]?.toUpperCase() ?? "M"}
-              </div>
-              <div className="flex items-center gap-2 text-sm ml-auto">
-                <ShareButton
-                  title={article.title}
-                  text={article.excerpt ?? article.title}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-2xl bg-primary/10 p-4 text-sm">
-              <Link to="/connexion" className="font-medium text-primary hover:underline">
-                Connecte-toi
-              </Link>{" "}
-              pour laisser un commentaire.
-            </div>
-          )}
-
-          <ul className="mt-8 space-y-5">
-            {comments.filter((c) => c.status === "APPROVED").map((c) => (
-              <li key={c.id} className="flex gap-3">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold">
-                  {(c.user?.name ?? c.authorName ?? "?")[0]?.toUpperCase()}
-                </div>
-                <div className="flex-1 rounded-2xl border border-border bg-card p-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium">{c.user?.name ?? c.authorName ?? "Membre"}</span>
-                    <span className="text-muted-foreground">
-                      {new Date(c.createdAt).toLocaleDateString("fr-FR")}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-sm text-foreground">{c.content}</p>
-                </div>
-              </li>
-            ))}
-            {comments.length === 0 && (
-              <li className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                Aucun commentaire pour l'instant. Sois le premier !
-              </li>
-            )}
-          </ul>
+      <div className="mx-auto max-w-2xl px-5 mt-8 border-t border-border pt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-serif text-2xl text-foreground">Partager</h2>
+          <ShareButton
+            title={article.title}
+            text={article.excerpt ?? article.title}
+            url={`${window.location.origin}/blog/${article.id}`}
+          />
         </div>
-      </section>
+      </div>
+
+      {id && <CommentSection articleId={id} />}
     </article>
   );
 }
-
-export default ArticleDetailPage;

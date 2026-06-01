@@ -20,18 +20,18 @@ const icons = {
 
 // Styles pour le conteneur principal (Effet de verre et bordure latérale)
 const containerStyles = {
-  success: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-primary border-border dark:border-slate-800',
-  error: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-red-500 border-border dark:border-slate-800',
-  warning: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-amber-500 border-border dark:border-slate-800',
-  info: 'bg-card/80 dark:bg-card/80 border-l-4 border-l-blue-500 border-border dark:border-slate-800',
+  success: 'bg-card/80 border-l-4 border-l-primary border-border',
+  error: 'bg-card/80 border-l-4 border-l-destructive border-border',
+  warning: 'bg-card/80 border-l-4 border-l-secondary border-border',
+  info: 'bg-card/80 border-l-4 border-l-primary border-border',
 };
 
 // Styles pour l'icône et son arrière-plan arrondi
 const iconWrapperStyles = {
-  success: 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400',
-  error: 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400',
-  warning: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
-  info: 'bg-blue-100 text-blue-600 dark:bg-secondary/100/20 dark:text-blue-400',
+  success: 'bg-primary/20 text-primary',
+  error: 'bg-destructive/20 text-destructive',
+  warning: 'bg-secondary/20 text-secondary',
+  info: 'bg-primary/20 text-primary',
 };
 
 export default function Notification({ id, type, message, duration = 4000, onClose }: NotificationProps) {
@@ -61,10 +61,10 @@ export default function Notification({ id, type, message, duration = 4000, onClo
       
       {/* Contenu textuel */}
       <div className="flex-1">
-        <h4 className="text-sm font-bold capitalize text-gray-900 dark:text-white mb-0.5">
+        <h4 className="text-sm font-bold capitalize text-foreground mb-0.5">
           {type}
         </h4>
-        <p className="text-[13px] text-muted-foreground dark:text-gray-400 font-medium leading-tight">
+        <p className="text-[13px] text-muted-foreground font-medium leading-tight">
           {message}
         </p>
       </div>
@@ -73,11 +73,11 @@ export default function Notification({ id, type, message, duration = 4000, onClo
       <button
         onClick={() => onClose(id)}
         className="
-          opacity-0 group-hover:opacity-100 
-          flex-shrink-0 w-8 h-8 rounded-full 
-          flex items-center justify-center 
-          hover:bg-gray-100 dark:hover:bg-slate-800 
-          text-gray-400 dark:text-muted-foreground
+          opacity-0 group-hover:opacity-100
+          flex-shrink-0 w-8 h-8 rounded-full
+          flex items-center justify-center
+          hover:bg-muted
+          text-muted-foreground
           transition-all duration-200
         "
         aria-label="Fermer"

@@ -33,7 +33,7 @@ function RequireAuth() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] bg-aemb-cream pt-28 flex items-center justify-center text-sm font-medium text-primary">
+      <div className="min-h-[60vh] bg-background pt-28 flex items-center justify-center text-sm font-medium text-primary">
         Chargement...
       </div>
     );
@@ -58,7 +58,7 @@ function RequireRole({
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] bg-aemb-cream pt-28 flex items-center justify-center text-sm font-medium text-primary">
+      <div className="min-h-[60vh] bg-background pt-28 flex items-center justify-center text-sm font-medium text-primary">
         Chargement...
       </div>
     );

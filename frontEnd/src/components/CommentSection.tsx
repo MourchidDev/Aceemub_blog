@@ -77,7 +77,7 @@ export default function CommentSection({ articleId }: Props) {
             <button
               type="submit"
               disabled={createMutation.isPending}
-              className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-bold hover:opacity-90 disabled:opacity-50 transition-colors"
             >
               <Send size={16} />
               {createMutation.isPending ? 'Envoi...' : 'Publier'}
@@ -85,7 +85,7 @@ export default function CommentSection({ articleId }: Props) {
           </div>
         </form>
       ) : (
-        <div className="mb-12 p-6 bg-amber-50 border border-amber-100 rounded-2xl text-center">
+        <div className="mb-12 p-6 bg-primary/10 border border-primary/20 rounded-2xl text-center">
           <p className="text-muted-foreground">Connectez-vous pour laisser un commentaire</p>
         </div>
       )}

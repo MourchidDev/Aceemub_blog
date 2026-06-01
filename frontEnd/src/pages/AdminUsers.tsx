@@ -27,8 +27,8 @@ const roles: Array<{ value: UserRole; label: string }> = [
 ];
 
 const roleStyles: Record<UserRole, string> = {
-  ADMIN: 'bg-emerald-100 text-emerald-700',
-  EDITOR: 'bg-blue-100 text-secondary',
+  ADMIN: 'bg-primary/20 text-primary',
+  EDITOR: 'bg-secondary/20 text-secondary',
   MEMBER: 'bg-muted text-muted-foreground',
 };
 
@@ -95,7 +95,7 @@ function DeleteUserModal({
       <form onSubmit={handleSubmit} className="relative w-full max-w-md bg-card rounded-xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-destructive/20 text-destructive flex items-center justify-center">
               <Trash2 size={18} />
             </div>
             <div>
@@ -131,7 +131,7 @@ function DeleteUserModal({
                 value={confirmationValue}
                 onChange={(event) => setConfirmationValue(event.target.value)}
                 placeholder={needsEmailConfirmation ? currentUser.email : undefined}
-                className="w-full rounded-lg border border-border pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full rounded-lg border border-border pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive"
                 autoFocus
               />
             </div>
@@ -149,7 +149,7 @@ function DeleteUserModal({
           <button
             type="submit"
             disabled={isPending || !confirmationValue.trim()}
-            className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 rounded-lg bg-destructive px-4 py-2.5 text-sm font-semibold text-white hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isPending ? 'Suppression...' : 'Supprimer'}
           </button>
@@ -271,13 +271,13 @@ export default function AdminUsers() {
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         {users.length === 0 && !isLoading ? (
           <div className="p-16 text-center">
-            <Users size={44} className="mx-auto text-slate-300 mb-3" />
+            <Users size={44} className="mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground">Aucun utilisateur trouve</p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100">
+              <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-bold uppercase text-muted-foreground">Utilisateur</th>
@@ -287,7 +287,7 @@ export default function AdminUsers() {
                     <th className="px-6 py-3 text-right text-xs font-bold uppercase text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {paginatedUsers.map((user) => {
                     const isSelf = user.id === currentUser?.id;
 
@@ -330,7 +330,7 @@ export default function AdminUsers() {
                               checked={user.isActive}
                               disabled={isSelf || updateUser.isPending}
                               onChange={(event) => updateStatus(user, event.target.checked)}
-                              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-aemb-green"
+                              className="h-4 w-4 rounded border-border text-primary focus:ring-primary/50"
                             />
                             {user.isActive ? 'Actif' : 'Desactive'}
                           </label>
@@ -344,7 +344,7 @@ export default function AdminUsers() {
                               type="button"
                               disabled={isSelf || deleteUser.isPending}
                               onClick={() => setUserToDelete(user)}
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-destructive hover:bg-destructive/10 disabled:text-muted-foreground disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
                               title={isSelf ? 'Action indisponible sur votre propre compte' : 'Supprimer'}
                               aria-label={`Supprimer ${user.name}`}
                             >

@@ -68,7 +68,6 @@ export interface UserAccount {
   createdAt: string;
 }
 
-
 export interface Event {
   id: string;
   title: string;
@@ -83,6 +82,30 @@ export interface Event {
   updatedAt: string;
 }
 
+export interface CreateEventPayload {
+  title: string;
+  description: string;
+  location: string;
+  eventDate: string;
+  status?: ContentStatus;
+  albumTitle?: string;
+  images: File[];
+}
+
+export interface UpdateEventPayload {
+  title?: string;
+  description?: string;
+  location?: string;
+  eventDate?: string;
+  status?: ContentStatus;
+}
+
+export interface ContactPayload {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
 export interface Announcement {
   id: number;
   title: string;
@@ -138,3 +161,5 @@ export interface MembershipCard {
   isActive: boolean;
   createdAt: string;
 }
+
+
