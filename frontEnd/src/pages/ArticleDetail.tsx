@@ -1,50 +1,17 @@
-import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { ArrowLeft, Calendar, Clock, Share2, Facebook, Twitter, MessageCircle, Send } from "lucide-react";
-import { articlesApi, commentsApi } from "@/api";
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
-import Loader from "@/components/Loader";
+import { Calendar, User, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
+import ShareButton from '../components/ShareButton';
+import { motion } from 'motion/react';
+import { useArticle } from '../hooks/useArticles';
+import Loader from '../components/Loader';
+import CommentSection from '../components/CommentSection';
 
+export default function ArticleDetail() {
+  const { id } = useParams();
+  const { data: article, isLoading } = useArticle(id || '');
 
-
-function readMinutes(content: string) {
-  const w = content.replace(/<[^>]+>/g, "").split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(w / 220));
-}
-
-function ArticleDetailPage() {
-  const { id } = useParams() as any;
-  const { isAuthenticated, user } = useAuth();
-  const { data: article, isLoading } = useQuery({
-    queryKey: ["article", id],
-    queryFn: () => articlesApi.getById(id),
-    retry: false,
-  });
-  const { data: comments = [], refetch } = useQuery({
-    queryKey: ["comments", id],
-    queryFn: () => commentsApi.getByArticle(id).catch(() => []),
-    initialData: [],
-  });
-
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-
-  if (isLoading) {
-    return <Loader isLoading={true} />;
-  }
-
-  if (!article) {
-    return (
-      <div className="mx-auto max-w-2xl px-5 pt-16 text-center">
-        <h1 className="font-serif text-3xl">Article introuvable</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Il a peut-être été retiré ou archivé.</p>
-        <Link to="/blog" className="mt-6 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm text-primary-foreground">
-          Retour au blog
-        </Link>
-      </div>
-    );
+  if (!article && !isLoading) {
+    return <div className="pt-40 text-center text-slate-400">Article introuvable.</div>;
   }
 
   const handleSend = async () => {
@@ -148,23 +115,11 @@ function ArticleDetailPage() {
               <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                 {user?.name?.[0]?.toUpperCase() ?? "M"}
               </div>
-              <div className="flex-1">
-                <textarea
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Écris un commentaire bienveillant…"
-                  rows={3}
-                  className="w-full resize-none rounded-2xl border border-border bg-card p-3 text-sm focus:border-primary focus:outline-none"
+              <div className="flex items-center gap-2 text-sm ml-auto">
+                <ShareButton
+                  title={article.title}
+                  text={article.excerpt ?? article.title}
                 />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    onClick={handleSend}
-                    disabled={sending || !draft.trim()}
-                    className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                  >
-                    <Send className="h-3.5 w-3.5" /> Publier
-                  </button>
-                </div>
               </div>
             </div>
           ) : (

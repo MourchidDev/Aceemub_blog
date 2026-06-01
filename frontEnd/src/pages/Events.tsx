@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, MapPin } from "lucide-react";
+import ShareButton from '../components/ShareButton';
 import { eventsApi } from "@/api";
 import PageHeader from "@/components/PageHeader";
 import type { Event } from "@/types";
@@ -35,6 +36,11 @@ function EventsPage() {
     initialData: SAMPLE,
   });
 
+  
+  const filteredEvents = activeCategory === "Tous"
+    ? events
+    : events.filter(ev => ev.type === activeCategory);
+
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
@@ -63,6 +69,16 @@ function EventsPage() {
                     <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {time}</span>
                     <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {e.location}</span>
                   </div>
+                </div>
+                <div className="mt-8 flex justify-end gap-3">
+                  <ShareButton
+                    title={ev.title}
+                    text={ev.desc}
+                    url={`${window.location.origin}/evenements/${ev.id}`}
+                  />
+                  <button className="bg-aemb-green text-white px-8 py-4 rounded-2xl font-bold hover:scale-105 transition-transform shadow-lg shadow-emerald-900/10 flex items-center gap-2">
+                    S'inscrire <ArrowRight size={18} />
+                  </button>
                 </div>
               </div>
             </li>

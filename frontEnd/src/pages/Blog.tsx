@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import ShareButton from '../components/ShareButton';
 import { articlesApi, categoriesApi } from "@/api";
 import ArticleCard from "@/components/ArticleCard";
 import CategoryTabs from "@/components/CategoryTabs";

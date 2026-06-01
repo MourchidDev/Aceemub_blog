@@ -8,7 +8,7 @@ import authorize from "../middleware/authorize.js";
 const router = express.Router();
 const canEditContent = [requireAuth, authorize("ADMIN", "EDITOR")];
 
-const MIN_IMAGES_ON_CREATE = 5;
+// Les images sont optionnelles à la création (peuvent être ajoutées via albums par la suite)
 
 function slugify(str) {
   return str
@@ -70,23 +70,12 @@ router.post("/", ...canEditContent, upload.array("images", 20), async (req, res)
       return res.status(400).json({ error: "title, description, location et eventDate sont requis." });
     }
 
-    if (files.length < MIN_IMAGES_ON_CREATE) {
-      return res.status(400).json({
-        error: `Minimum ${MIN_IMAGES_ON_CREATE} images requises à la création.`,
-      });
-    }
-
     // Slug unique
     let slug = slugify(title);
     const existing = await prisma.event.findUnique({ where: { slug } });
     if (existing) slug = `${slug}-${Date.now()}`;
 
-    // Upload toutes les images en parallèle
-    const uploaded = await Promise.all(
-      files.map((f) => uploadImage(f.buffer, "events"))
-    );
-
-    // Transaction : event + album + media
+    // Transaction : event + album (optionnel) + media (optionnel)
     const event = await prisma.$transaction(async (tx) => {
       const newEvent = await tx.event.create({
         data: {
@@ -99,20 +88,27 @@ router.post("/", ...canEditContent, upload.array("images", 20), async (req, res)
         },
       });
 
-      const album = await tx.album.create({
-        data: {
-          title: albumTitle?.trim() || title,
-          eventId: newEvent.id,
-        },
-      });
+      // Créer un album et uploader les images seulement si des fichiers sont fournis
+      if (files.length > 0) {
+        const uploaded = await Promise.all(
+          files.map((f) => uploadImage(f.buffer, "events"))
+        );
 
-      await tx.media.createMany({
-        data: uploaded.map(({ url }) => ({
-          url,
-          type: "IMAGE",
-          albumId: album.id,
-        })),
-      });
+        const album = await tx.album.create({
+          data: {
+            title: albumTitle?.trim() || title,
+            eventId: newEvent.id,
+          },
+        });
+
+        await tx.media.createMany({
+          data: uploaded.map(({ url }) => ({
+            url,
+            type: "IMAGE",
+            albumId: album.id,
+          })),
+        });
+      }
 
       return tx.event.findUnique({
         where: { id: newEvent.id },
